@@ -2,21 +2,9 @@
 
 Build a complete, production-quality VibePPT slide deck from the user's topic and sources.
 
-## Step 1 — Gather sources
+## Context - presentation strategies
 
-Read every source the user has provided (URLs, files, pasted text). Extract:
-- Core argument or thesis
-- Key facts, stats, and data points
-- Logical sections and subsections
-- Any quotes or specific language worth preserving
-
-If sources are URLs, fetch their content. If sources are files in the repo, read them.
-
-Make sure to capture ALL key points.
-
-## Step 2 - Choose a strategy
-
-Here are a few strategic approaches, each with a distinct goal:
+Here are a few strategic approaches to a presentation, each with a distinct goal:
 
 **Strategy 1: The Problem-First Hook**
 *Best for: pitches, stakeholder buy-in, sales presentations*
@@ -57,6 +45,29 @@ Here are a few strategic approaches, each with a distinct goal:
 - Circle back to explain how you got there only after the audience is hooked
 - Keep the "setup" section short; most presenters spend too long here
 - The ending should feel like a payoff to the opening moment, not a separate conclusion
+
+## Step 0 - Gather information
+
+If not in the prompt, ask the user these things:
+1. Target audience (suggest some possibilities based on the topic, but allow a "other" class so the user can specify something else if needed)
+2. Allotted time (how much time the user has to present)
+3. Preferred presentation strategy: provide the list above (just the names), plus an Auto option active by default.
+
+## Step 1 — Gather sources
+
+Read every source the user has provided (URLs, files, pasted text). Extract:
+- Core argument or thesis
+- Key facts, stats, and data points
+- Logical sections and subsections
+- Any quotes or specific language worth preserving
+
+If sources are URLs, fetch their content. If sources are files in the repo, read them.
+
+Make sure to capture ALL key points.
+
+## Step 2 - Choose a strategy
+
+Based on the user answers, pick a presentation strategy from the list above. If the user has chosen already a strategy, use that. If they chose "Auto", select one that is appropriate given the other constraints.
 
 ## Step 3 — Design the outline
 
