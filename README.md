@@ -20,8 +20,7 @@ From within the `vibeppt` folder:
 ```
 claude --permission-mode auto "/create-presentation about this https://karpathy.bearblog.dev/year-in-review-2025/"
 ```
-
-TIP: add `
+or just run claude code and enter the prompt "/create-presentation about this https://karpathy.bearblog.dev/year-in-review-2025/" from within CC.
 
 ### Same thing with Cursor agent
 
