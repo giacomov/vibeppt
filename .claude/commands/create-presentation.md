@@ -12,9 +12,55 @@ Read every source the user has provided (URLs, files, pasted text). Extract:
 
 If sources are URLs, fetch their content. If sources are files in the repo, read them.
 
-## Step 2 — Design the outline
+Make sure to capture ALL key points.
 
-Before writing any code, produce a written outline:
+## Step 2 - Choose a strategy
+
+Here are a few strategic approaches, each with a distinct goal:
+
+**Strategy 1: The Problem-First Hook**
+*Best for: pitches, stakeholder buy-in, sales presentations*
+
+- Open with the audience's pain point, not your solution
+- Frame every data point as evidence of the problem or proof of the fix
+- You are the mentor; they are the hero solving their own problem
+- End with a vivid picture of the "after" state, not a summary slide
+
+**Strategy 2: The Contrast Arc (What Is vs. What Could Be)**
+*Best for: vision presentations, change management, product launches*
+
+- Alternate throughout between the current reality and the desired future
+- Make the gap between "what is" and "what could be" feel urgent and personal
+- Use one concrete stat or story to anchor each side of the contrast
+- Your call to action is the bridge — make it specific and achievable
+
+**Strategy 3: Context → Dispute → Solution**
+*Best for: technical presentations, research findings, engineering talks*
+
+- Lead with context: why this problem matters and what was already known
+- Name the dispute or gap: what wasn't working, what was missing, or what surprised you
+- Present your solution as the direct answer to that specific gap — not a general overview
+- Close with second-order impact: what else gets better because of this
+
+**Strategy 4: The Relatable Metaphor**
+*Best for: explaining complex or abstract technical concepts to mixed audiences*
+
+- Identify the one mechanism your audience needs to understand, then find an everyday analogy for it
+- Introduce the metaphor early and return to it — don't drop it after one slide
+- Use the metaphor to frame your data visuals, not just your words
+- Know where the metaphor breaks down and acknowledge it briefly — it builds credibility
+
+**Strategy 5: In Medias Res**
+*Best for: conference talks, demos, any presentation where you need to earn attention fast*
+
+- Start in the middle of the story — a surprising result, a live demo, a moment of failure
+- Circle back to explain how you got there only after the audience is hooked
+- Keep the "setup" section short; most presenters spend too long here
+- The ending should feel like a payoff to the opening moment, not a separate conclusion
+
+## Step 3 — Design the outline
+
+Before writing any code, produce a written outline reflecting your chosen strategy and the content you fetched before:
 
 1. **Name the deck** — choose a short, memorable folder name (kebab-case, e.g. `q4-review`)
 2. **Choose an accent color** — one hex value that fits the tone of the content
@@ -64,7 +110,7 @@ First, always ask: can this be one of these high-impact animated or visual templ
 
 Present the outline to the user and confirm before proceeding to implementation.
 
-## Step 3 — Implement slides
+## Step 4 — Implement slides
 
 Create a task list with one task per slide file plus one task for `deck.ts`. Mark dependencies (all slide tasks must complete before `deck.ts`). Execute all slide tasks in parallel, then create `deck.ts`.
 
@@ -99,7 +145,7 @@ export const deck: Deck = {
 **Export mode — looping animations must stop:**
 Any slide with a looping `setTimeout`/`setInterval` animation must import `isExportMode` from `../../src/utils/export` and halt the loop after one full cycle when `isExportMode` is true.
 
-## Step 4 — Build
+## Step 5 — Build
 
 Run `npm run build` and fix all TypeScript and import errors before proceeding. Do not skip this step.
 
