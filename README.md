@@ -1,22 +1,20 @@
-# VibePPT
+<div align="center">
+  <img src="media/logo.png" alt="VibePPT" width="200" />
+</div>
 
-A minimal, AI-native slide deck builder. Presentations are React + TypeScript components assembled from a template library, styled through a design token system, and rendered in a fixed 16:9 frame.
+<div align="center">
+  <a href="https://buymeacoffee.com/giacomov"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me A Coffee" /></a>
+</div>
 
-The point: give a coding agent (Claude Code, Cursor, etc.) a topic, and it produces a complete presentation — slides, animations, speaker notes — that you can then refine through conversation or code.
+A minimal, AI-native slide deck builder. 
 
-It supports:
-* Text-to-presentation: just one prompt for one presentation. The agent will: create an outline -> create the slides -> render them -> analyze them and fix any error -> end. The agent will loop until all errors (coding or layout) are fixed.
-* Text-to-slide: you can create one slide at the time by just prompting your favorite tool (cursor, claude code, codex...) like "Create a new slide with the following content: ..."
+https://github.com/user-attachments/assets/bad693b2-c46b-407c-9d8a-8d16c6d073c7
 
-You can then change anything you want by prompting or modifying the code.
+**Result:**
 
----
+https://github.com/user-attachments/assets/73025fde-8353-4c68-b85d-5ee7b10a68f9
 
-## Demo
-
-### Creating a deck from a blog post
-
-The following prompt was given to Claude Code's `/create-presentation` command:
+Prompt:
 
 ```
 /create-presentation
@@ -27,14 +25,6 @@ The following prompt was given to Claude Code's `/create-presentation` command:
     For curl, use a User-Agent so you can avoid the anti-crawling protection, and skip the certificate
     verification. Make sure to fetch the ENTIRE page, not just a section.
 ```
-
-**Claude Code building the deck** (`media/claude_code_demo.mp4`):
-
-https://github.com/user-attachments/assets/claude_code_demo.mp4
-
-**The resulting presentation** (`media/claude_code_demo_result.mp4`):
-
-https://github.com/user-attachments/assets/claude_code_demo_result.mp4
 
 ### Same thing with Cursor agent
 
@@ -61,7 +51,17 @@ The `karpathy-2025` deck is ready — 16 slides covering all six of Karpathy's p
 16. **The End**
 ```
 
----
+# In short
+
+Give a coding agent (Claude Code, Cursor, etc.) a topic, and it produces a complete presentation — slides, animations, speaker notes — that you can then refine through conversation or code.
+
+It supports:
+* Text-to-presentation: just one prompt for one presentation. The agent will: create an outline -> create the slides -> render them -> analyze them and fix any error -> end. The agent will loop until all errors (coding or layout) are fixed.
+* Text-to-slide: you can create one slide at the time by just prompting your favorite tool (cursor, claude code, codex...) like "Create a new slide with the following content: ..."
+
+You can then change anything you want by prompting or modifying the code.
+
+Presentations are React + TypeScript components assembled from a template library (or custom-built with your favorite vibe coding tool), styled through a design token system, and rendered in a fixed 16:9 frame.
 
 ## Getting started
 
