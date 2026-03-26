@@ -77,7 +77,9 @@ Then clone the repository https://github.com/giacomov/vibeppt and create within 
 Finally install the required dependencies with `npm install` and run with `npm run dev`.
 ```
 
-Then go to your browser at `http://localhost:5173/`.
+Then go to your browser at `http://localhost:5173/` to have a look at the demo presentations.
+
+Whey you are ready to make your own, use `/create-presentation` (see next section).
 
 ## Creating presentations
 
