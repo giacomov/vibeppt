@@ -79,9 +79,10 @@ Create a task list with one task per slide file plus one task for `deck.ts`. Mar
 - Use `HeroTitle` only inside `TitleSlide`
 - `SectionTitleSlide` takes `title` as a direct string prop — no `header`, no `children`
 - `TheEndSlide` and `ImageSlide` take no `header` prop
-- Icons: always Lucide React (`import { X } from 'lucide-react'`), `size={22}`, never emoji strings (except PrismSlide icon fields, which accept both)
+- Icons: always Lucide React (`import { X } from 'lucide-react'`), `size={22}`, never emoji strings
 - No magic hex strings — use only Tailwind token classes: `bg-background`, `bg-surface`, `bg-accent`, `text-slide-text`, `text-muted`, `font-display`, `font-body`, `font-mono`
 - Read the relevant `src/templates/[name]/example.tsx` before implementing any slide that uses that template
+- Titles should not have title props unless adding them is of significant value. Busy slides like `StackSlide` should NOT have any title
 
 **`deck.ts` contract:**
 ```ts
