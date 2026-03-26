@@ -14,17 +14,14 @@ https://github.com/user-attachments/assets/bad693b2-c46b-407c-9d8a-8d16c6d073c7
 
 https://github.com/user-attachments/assets/73025fde-8353-4c68-b85d-5ee7b10a68f9
 
-Prompt:
+### Try youself in Claude Code:
 
+From within the `vibeppt` folder:
 ```
-/create-presentation
-
-    Read this blog using curl https://karpathy.bearblog.dev/year-in-review-2025/ , then create a
-    presentation about it.
-
-    For curl, use a User-Agent so you can avoid the anti-crawling protection, and skip the certificate
-    verification. Make sure to fetch the ENTIRE page, not just a section.
+claude --permission-mode auto "/create-presentation about this https://karpathy.bearblog.dev/year-in-review-2025/"
 ```
+
+TIP: add `
 
 ### Same thing with Cursor agent
 
