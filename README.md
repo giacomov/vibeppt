@@ -6,7 +6,7 @@
   <a href="https://buymeacoffee.com/giacomov"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me A Coffee" /></a>
 </div>
 
-A minimal, AI-native slide deck builder. 
+An AI-native slide deck builder: prompts in, slides out. Highly customizable. 
 
 https://github.com/user-attachments/assets/bad693b2-c46b-407c-9d8a-8d16c6d073c7
 
@@ -53,11 +53,13 @@ The `karpathy-2025` deck is ready — 16 slides covering all six of Karpathy's p
 
 # In short
 
-Give a coding agent (Claude Code, Cursor, etc.) a topic, and it produces a complete presentation — slides, animations, speaker notes — that you can then refine through conversation or code.
+Give a coding agent (Claude Code, Cursor, etc.) a topic, and it produces a complete presentation — slides, animations, speaker notes — that you can then refine through conversation or code. 
+
+Or, built it slide by slide. Since it just React + TypeScript, your coding agents will feel right at home. If the available templates aren't enough, you can just vibe code your own and they will fit right in.
 
 It supports:
 * Text-to-presentation: just one prompt for one presentation. The agent will: create an outline -> create the slides -> render them -> analyze them and fix any error -> end. The agent will loop until all errors (coding or layout) are fixed.
-* Text-to-slide: you can create one slide at the time by just prompting your favorite tool (cursor, claude code, codex...) like "Create a new slide with the following content: ..."
+* Text-to-slide: you can create one slide at the time by just prompting your favorite tool (cursor, claude code, codex...) like "Create a new slide with the following content: ...". You can also ask it to create a new custom visualization, animation, and so on. Templates can help you start very quickly, but the sky is the limit. Just ask what you want like you would in any vibe coding situation.
 
 You can then change anything you want by prompting or modifying the code.
 
