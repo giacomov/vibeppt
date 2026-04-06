@@ -26,6 +26,10 @@ const demoEntries: DeckEntry[] = Object.entries(demoModules).map(([path, mod]) =
   return { name, deck: mod.deck }
 })
 
-export const allDecks: DeckEntry[] = [...presentationEntries, ...demoEntries].sort((a, b) =>
+// Presentations take priority: exclude demos whose folder name conflicts with a presentation.
+const presentationNames = new Set(presentationEntries.map(e => e.name))
+const filteredDemoEntries = demoEntries.filter(e => !presentationNames.has(e.name))
+
+export const allDecks: DeckEntry[] = [...presentationEntries, ...filteredDemoEntries].sort((a, b) =>
   a.deck.title.localeCompare(b.deck.title)
 )
