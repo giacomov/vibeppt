@@ -208,6 +208,7 @@ Instructions:
 3. When done, open a single pull request targeting the main branch.
 4. The PR body MUST include "closes #<number>" for every issue you have addressed.
 5. Do not work on issues that are not listed above.
+6. After finishing your work on each issue (whether or not you made changes), post a comment on that issue summarizing what was done and why. If no changes were needed, explain why the issue was already resolved or did not require action.
 `;
 }
 
