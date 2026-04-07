@@ -25,7 +25,7 @@ import { TheEndSlide } from './theend/TheEndSlide'
 
 beforeAll(() => {
   // @xyflow/react (used by FlowSlide) requires ResizeObserver
-  global.ResizeObserver = class ResizeObserver {
+  globalThis.ResizeObserver = class ResizeObserver {
     observe() {}
     unobserve() {}
     disconnect() {}
