@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toChannels, sanitizeFont } from './theme'
+import { toChannels, sanitizeFont, applyDefaultTokens } from './theme'
 
 describe('toChannels', () => {
   it('converts a 6-digit hex color to channel string', () => {
@@ -64,5 +64,26 @@ describe('sanitizeFont', () => {
 
   it('trims surrounding whitespace', () => {
     expect(sanitizeFont('  Arial  ')).toBe('Arial')
+  })
+})
+
+describe('applyDefaultTokens', () => {
+  it('sets color CSS custom properties on :root', () => {
+    applyDefaultTokens()
+    const style = document.documentElement.style
+    // Each color token becomes an "R G B" channel string
+    expect(style.getPropertyValue('--color-background')).toMatch(/^\d+ \d+ \d+$/)
+    expect(style.getPropertyValue('--color-accent')).toMatch(/^\d+ \d+ \d+$/)
+    expect(style.getPropertyValue('--color-text')).toMatch(/^\d+ \d+ \d+$/)
+    expect(style.getPropertyValue('--color-muted')).toMatch(/^\d+ \d+ \d+$/)
+    expect(style.getPropertyValue('--color-surface')).toMatch(/^\d+ \d+ \d+$/)
+  })
+
+  it('sets font CSS custom properties on :root', () => {
+    applyDefaultTokens()
+    const style = document.documentElement.style
+    expect(style.getPropertyValue('--font-display')).toBeTruthy()
+    expect(style.getPropertyValue('--font-body')).toBeTruthy()
+    expect(style.getPropertyValue('--font-mono')).toBeTruthy()
   })
 })
