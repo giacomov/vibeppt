@@ -41,7 +41,7 @@ Options:
 `);
 }
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const options = {
     deck: null,
     format: "pdf",
@@ -122,7 +122,7 @@ function parseArgs(argv) {
  * @param {string} raw
  * @returns {Set<number>}
  */
-function parseSlideSelection(raw) {
+export function parseSlideSelection(raw) {
   const indices = new Set();
   for (const part of raw.split(",")) {
     const trimmed = part.trim();
@@ -141,7 +141,7 @@ function parseSlideSelection(raw) {
   return indices;
 }
 
-function parseIntOrThrow(raw, argName) {
+export function parseIntOrThrow(raw, argName) {
   const parsed = Number.parseInt(raw ?? "", 10);
   if (!Number.isFinite(parsed) || parsed <= 0) {
     throw new Error(`Invalid numeric value for ${argName}: ${raw}`);
@@ -149,7 +149,7 @@ function parseIntOrThrow(raw, argName) {
   return parsed;
 }
 
-function sanitizeForFilename(input) {
+export function sanitizeForFilename(input) {
   return input
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
@@ -167,7 +167,7 @@ function wait(ms) {
  * @param {number} n
  * @returns {IndexedSlide[][]}
  */
-function chunkByWorkers(arr, n) {
+export function chunkByWorkers(arr, n) {
   const result = [];
   const size = Math.ceil(arr.length / n);
   for (let i = 0; i < arr.length; i += size) {
