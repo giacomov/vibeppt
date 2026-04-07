@@ -54,7 +54,8 @@ describe('HeatmapSlide', () => {
         ]}
       />,
     )
-    expect(screen.getByText('The')).toBeInTheDocument()
+    // 'The' appears as both a row and column label — use getAllByText
+    expect(screen.getAllByText('The').length).toBeGreaterThan(0)
     expect(screen.getByText('mat')).toBeInTheDocument()
   })
 

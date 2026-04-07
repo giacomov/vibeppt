@@ -10,6 +10,12 @@ beforeAll(() => {
     unobserve() {}
     disconnect() {}
   }
+  // jsdom doesn't include navigator.clipboard — define it so vi.spyOn can target it
+  Object.defineProperty(navigator, 'clipboard', {
+    value: { writeText: () => Promise.resolve() },
+    writable: true,
+    configurable: true,
+  })
 })
 
 afterEach(() => {
