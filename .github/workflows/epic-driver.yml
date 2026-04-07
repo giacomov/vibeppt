@@ -44,6 +44,4 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: ${{ steps.find-work.outputs.prompt }}
-          allowed_tools: "Bash,Edit,Write,Glob,Grep,Read,WebSearch,WebFetch"
-          additional_permissions: |
-            actions: read
+          claude_args: "--allowedTools Bash(*),Edit,Write,Glob,Grep,Read,WebSearch,WebFetch"
