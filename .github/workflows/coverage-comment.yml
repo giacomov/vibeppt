@@ -30,7 +30,7 @@ jobs:
           script: |
             const fs = require('fs')
             const prNumber = parseInt(fs.readFileSync('pr-number.txt', 'utf8').trim(), 10)
-            const summary = JSON.parse(fs.readFileSync('coverage-summary.json', 'utf8'))
+            const summary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'))
             const total = summary.total
 
             const pct = key => `${total[key].pct}%`
