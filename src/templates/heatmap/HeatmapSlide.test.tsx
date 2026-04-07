@@ -54,9 +54,9 @@ describe('HeatmapSlide', () => {
         ]}
       />,
     )
-    // 'The' appears as both a row and column label — use getAllByText
+    // 'The' and 'mat' appear as both row and column labels — use getAllByText
     expect(screen.getAllByText('The').length).toBeGreaterThan(0)
-    expect(screen.getByText('mat')).toBeInTheDocument()
+    expect(screen.getAllByText('mat').length).toBeGreaterThan(0)
   })
 
   it('renders high-value cells with dark text and low-value cells with light text', () => {
