@@ -13,10 +13,10 @@ describe('HeroTitle', () => {
     expect(screen.getByText('Q4 2025')).toBeInTheDocument()
   })
 
-  it('does not render an eyebrow element when omitted', () => {
+  it('does not render eyebrow text when eyebrow is omitted', () => {
     const { container } = render(<HeroTitle headline="Title" />)
-    // eyebrow is a span with specific text — no other text should appear
-    expect(container.querySelectorAll('.font-mono')).toHaveLength(0)
+    // When no eyebrow is passed, the only rendered text is the headline itself
+    expect(container.textContent).toBe('Title')
   })
 
   it('renders the subtitle when provided', () => {

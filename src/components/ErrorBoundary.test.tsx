@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { ErrorBoundary } from './ErrorBoundary'
 
 function Bomb({ shouldThrow }: { shouldThrow: boolean }) {
@@ -44,7 +45,8 @@ describe('ErrorBoundary', () => {
     expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
   })
 
-  it('clears the error state when Retry is clicked', () => {
+  it('clears the error state when Retry is clicked', async () => {
+    const user = userEvent.setup()
     // First render with error, then clicking Retry should clear the error state.
     // The child will still throw on next render, but the error state itself resets.
     const { rerender } = render(
@@ -61,7 +63,7 @@ describe('ErrorBoundary', () => {
         <Bomb shouldThrow={false} />
       </ErrorBoundary>
     )
-    fireEvent.click(screen.getByRole('button', { name: /retry/i }))
+    await user.click(screen.getByRole('button', { name: /retry/i }))
     expect(screen.getByText('All good')).toBeInTheDocument()
   })
 })

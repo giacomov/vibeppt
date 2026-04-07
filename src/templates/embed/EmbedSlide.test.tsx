@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { EmbedSlide } from './EmbedSlide'
 import { SectionTitle } from '../common/SlideTitle'
 
@@ -45,17 +46,17 @@ describe('EmbedSlide', () => {
     expect(screen.getByLabelText('Zoom in')).toBeInTheDocument()
   })
 
-  it('zoom in button increases zoom level display', () => {
+  it('zoom in button increases zoom level display', async () => {
+    const user = userEvent.setup()
     render(<EmbedSlide src="https://example.com" title="Demo" defaultZoom={1} />)
-    const zoomIn = screen.getByLabelText('Zoom in')
-    fireEvent.click(zoomIn)
+    await user.click(screen.getByLabelText('Zoom in'))
     expect(screen.getByText('125%')).toBeInTheDocument()
   })
 
-  it('zoom out button decreases zoom level display', () => {
+  it('zoom out button decreases zoom level display', async () => {
+    const user = userEvent.setup()
     render(<EmbedSlide src="https://example.com" title="Demo" defaultZoom={1} />)
-    const zoomOut = screen.getByLabelText('Zoom out')
-    fireEvent.click(zoomOut)
+    await user.click(screen.getByLabelText('Zoom out'))
     expect(screen.getByText('75%')).toBeInTheDocument()
   })
 

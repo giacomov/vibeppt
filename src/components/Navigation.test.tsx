@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { Navigation } from './Navigation'
 
 describe('Navigation', () => {
@@ -24,17 +25,19 @@ describe('Navigation', () => {
     expect(screen.getByText('4 / 10')).toBeInTheDocument()
   })
 
-  it('fires onPrev when the previous button is clicked', () => {
+  it('fires onPrev when the previous button is clicked', async () => {
+    const user = userEvent.setup()
     const onPrev = vi.fn()
     render(<Navigation total={5} current={2} onPrev={onPrev} onNext={vi.fn()} />)
-    fireEvent.click(screen.getByLabelText('Previous slide'))
+    await user.click(screen.getByLabelText('Previous slide'))
     expect(onPrev).toHaveBeenCalledOnce()
   })
 
-  it('fires onNext when the next button is clicked', () => {
+  it('fires onNext when the next button is clicked', async () => {
+    const user = userEvent.setup()
     const onNext = vi.fn()
     render(<Navigation total={5} current={2} onPrev={vi.fn()} onNext={onNext} />)
-    fireEvent.click(screen.getByLabelText('Next slide'))
+    await user.click(screen.getByLabelText('Next slide'))
     expect(onNext).toHaveBeenCalledOnce()
   })
 })

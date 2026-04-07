@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { DeckPicker } from './DeckPicker'
 import type { DeckEntry } from '../decks'
 
@@ -29,11 +30,12 @@ describe('DeckPicker', () => {
     expect(screen.getByText(/no decks found/i)).toBeInTheDocument()
   })
 
-  it('calls onSelect with the correct entry when a deck is clicked', () => {
+  it('calls onSelect with the correct entry when a deck is clicked', async () => {
+    const user = userEvent.setup()
     const onSelect = vi.fn()
     const decks = [makeEntry('my-deck', 'My Deck')]
     render(<DeckPicker decks={decks} onSelect={onSelect} />)
-    fireEvent.click(screen.getByText('My Deck'))
+    await user.click(screen.getByText('My Deck'))
     expect(onSelect).toHaveBeenCalledWith(decks[0])
   })
 

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { StackSlide } from './StackSlide'
 import { SectionTitle } from '../common/SlideTitle'
 
@@ -51,35 +52,39 @@ describe('StackSlide (static)', () => {
 
 describe('StackSlide (animated)', () => {
   it('renders as a button when animated and not fully revealed', () => {
-    const { container } = render(<StackSlide levels={levels} animated />)
-    expect(container.firstChild).toHaveAttribute('role', 'button')
+    render(<StackSlide levels={levels} animated />)
+    expect(screen.getByRole('button')).toBeInTheDocument()
   })
 
-  it('reveals levels on click', () => {
-    const { container } = render(<StackSlide levels={levels} animated />)
-    // Click once — first level (bottom-up) becomes visible
-    fireEvent.click(container.firstChild as Element)
-    // The component should still be in the DOM and functional
-    expect(container.firstChild).toBeInTheDocument()
+  it('reveals levels on click', async () => {
+    const user = userEvent.setup()
+    render(<StackSlide levels={levels} animated />)
+    await user.click(screen.getByRole('button'))
+    expect(screen.getByRole('button')).toBeInTheDocument()
   })
 
-  it('advances on Enter keypress', () => {
-    const { container } = render(<StackSlide levels={levels} animated />)
-    fireEvent.keyDown(container.firstChild as Element, { key: 'Enter' })
-    expect(container.firstChild).toBeInTheDocument()
+  it('advances on Enter keypress', async () => {
+    const user = userEvent.setup()
+    render(<StackSlide levels={levels} animated />)
+    screen.getByRole('button').focus()
+    await user.keyboard('{Enter}')
+    expect(screen.getByRole('button')).toBeInTheDocument()
   })
 
-  it('advances on Space keypress', () => {
-    const { container } = render(<StackSlide levels={levels} animated />)
-    fireEvent.keyDown(container.firstChild as Element, { key: ' ' })
-    expect(container.firstChild).toBeInTheDocument()
+  it('advances on Space keypress', async () => {
+    const user = userEvent.setup()
+    render(<StackSlide levels={levels} animated />)
+    screen.getByRole('button').focus()
+    await user.keyboard(' ')
+    expect(screen.getByRole('button')).toBeInTheDocument()
   })
 
-  it('becomes non-interactive (tabIndex -1) after all levels are revealed', () => {
+  it('becomes non-interactive (tabIndex -1) after all levels are revealed', async () => {
+    const user = userEvent.setup()
     const singleLevel = [{ title: 'Only Layer', description: 'desc' }]
-    const { container } = render(<StackSlide levels={singleLevel} animated />)
+    render(<StackSlide levels={singleLevel} animated />)
     // One click reveals the single level; schedule.total === 1 so one click finishes it
-    fireEvent.click(container.firstChild as Element)
-    expect(container.firstChild).toHaveAttribute('tabindex', '-1')
+    await user.click(screen.getByRole('button'))
+    expect(screen.getByRole('button')).toHaveAttribute('tabindex', '-1')
   })
 })
