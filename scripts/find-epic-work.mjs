@@ -10,8 +10,8 @@
  * Required environment variables:
  *   GH_TOKEN          GitHub token (set automatically in Actions)
  *   GITHUB_REPOSITORY owner/repo  (set automatically in Actions)
- *   EVENT_NAME        'issues' | 'pull_request'
- *   ISSUE_NUMBER      issue number (when EVENT_NAME=issues)
+ *   EVENT_NAME        'issues' | 'pull_request' | 'workflow_dispatch'
+ *   ISSUE_NUMBER      issue number (when EVENT_NAME=issues or workflow_dispatch)
  *   PR_BODY           PR body text (when EVENT_NAME=pull_request)
  *
  * Outputs (written to $GITHUB_OUTPUT, or printed to stdout for local testing):
@@ -157,6 +157,11 @@ async function resolveEpicNumber() {
 
     info("Could not find an in-progress epic for this PR — nothing to do.");
     return null;
+  }
+
+  if (EVENT === "workflow_dispatch") {
+    if (!ISSUE_NUM) fatal("issue_number input is required for workflow_dispatch.");
+    return ISSUE_NUM;
   }
 
   fatal(`Unknown EVENT_NAME: "${EVENT}"`);

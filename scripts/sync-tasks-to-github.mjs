@@ -161,6 +161,26 @@ function addToProject(owner, projectNumber, issueUrl, dryRun) {
   );
 }
 
+/** Ensure the "in-progress" label exists in the repo, then apply it to an issue. */
+function addInProgressLabel(repo, issueNumber, dryRun) {
+  if (!dryRun) {
+    // gh label list returns all labels; check if "in-progress" is already there.
+    const labelList = gh(["label", "list", "--repo", repo, "--json", "name", "--jq", ".[].name"]);
+    const labelExists = labelList.split("\n").map((s) => s.trim()).includes("in-progress");
+    if (!labelExists) {
+      gh([
+        "label", "create", "in-progress", "--repo", repo,
+        "--color", "0075ca",
+        "--description", "Work is actively being driven by the epic driver",
+      ]);
+    }
+  }
+  gh(
+    ["issue", "edit", String(issueNumber), "--repo", repo, "--add-label", "in-progress"],
+    { dryRun, dryLabel: `add in-progress label to #${issueNumber}` }
+  );
+}
+
 /** Add a sub-issue to parentNumber. childDatabaseId is the issue's internal database ID. */
 function addSubIssue(repo, parentNumber, childDatabaseId, childNumber, dryRun) {
   const [owner, repoName] = repo.split("/");
@@ -377,7 +397,17 @@ async function main() {
     }
   }
 
-  // 5. Summary
+  // 5. Add "in-progress" label to parent epic so the epic driver picks it up
+  console.log("\n── Marking epic as in-progress");
+  try {
+    addInProgressLabel(repo, parentNumber, opts.dryRun);
+    if (!opts.dryRun) console.log(`   → added "in-progress" label to #${parentNumber}`);
+  } catch (err) {
+    console.warn(`   WARNING: could not add in-progress label: ${err.message}`);
+    failures.push({ step: "add in-progress label to parent", error: err.message });
+  }
+
+  // 6. Summary
   console.log("\n── Summary");
   if (!opts.dryRun) {
     console.log(`   Parent issue: https://github.com/${repo}/issues/${parentNumber}`);

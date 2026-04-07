@@ -5,6 +5,12 @@ on:
     types: [labeled]
   pull_request:
     types: [closed]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Epic issue number to resume driving (required)'
+        required: true
+        type: string
 
 jobs:
   drive-epic:
@@ -13,7 +19,8 @@ jobs:
        github.event.label.name == 'in-progress' &&
        github.event.issue.pull_request == null) ||
       (github.event_name == 'pull_request' &&
-       github.event.pull_request.merged == true)
+       github.event.pull_request.merged == true) ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -21,7 +28,6 @@ jobs:
       issues: write
       id-token: write
       actions: read
-      workflows: write
 
     steps:
       - name: Checkout repository
@@ -35,7 +41,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           EVENT_NAME: ${{ github.event_name }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
           PR_BODY: ${{ github.event.pull_request.body }}
         run: node scripts/find-epic-work.mjs
 
