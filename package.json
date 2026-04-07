@@ -10,7 +10,8 @@
     "export": "node scripts/export-slides.mjs",
     "sync-tasks": "node scripts/sync-tasks-to-github.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@dagrejs/dagre": "^2.0.4",
@@ -26,7 +27,9 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.5.2",
+    "@vitest/coverage-v8": "^4.1.3",
     "autoprefixer": "^10.4.21",
+    "canvas": "^3.2.3",
     "jsdom": "^29.0.2",
     "pdf-lib": "^1.17.1",
     "playwright": "^1.52.0",

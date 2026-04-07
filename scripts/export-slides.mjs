@@ -3,6 +3,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { cpus } from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import process from "node:process";
 import { spawn } from "node:child_process";
 import { chromium } from "playwright";
@@ -456,7 +457,9 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(`Export failed: ${error instanceof Error ? error.message : String(error)}`);
-  process.exitCode = 1;
-});
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error(`Export failed: ${error instanceof Error ? error.message : String(error)}`);
+    process.exitCode = 1;
+  });
+}
