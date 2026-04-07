@@ -29,4 +29,7 @@ npm-debug.log*
 # TypeScript
 *.tsbuildinfo
 
+# Coverage
+coverage/
+
 presentations/
