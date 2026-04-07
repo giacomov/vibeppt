@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { StackSlide } from './StackSlide'
 import { SectionTitle } from '../common/SlideTitle'
 
@@ -56,35 +55,33 @@ describe('StackSlide (animated)', () => {
     expect(screen.getByRole('button')).toBeInTheDocument()
   })
 
-  it('reveals levels on click', async () => {
-    const user = userEvent.setup()
+  it('reveals levels on click', () => {
     render(<StackSlide levels={levels} animated />)
-    await user.click(screen.getByRole('button'))
+    fireEvent.click(screen.getByRole('button'))
     expect(screen.getByRole('button')).toBeInTheDocument()
   })
 
-  it('advances on Enter keypress', async () => {
-    const user = userEvent.setup()
+  it('advances on Enter keypress', () => {
     render(<StackSlide levels={levels} animated />)
-    screen.getByRole('button').focus()
-    await user.keyboard('{Enter}')
+    const button = screen.getByRole('button')
+    button.focus()
+    fireEvent.keyDown(button, { key: 'Enter', code: 'Enter' })
     expect(screen.getByRole('button')).toBeInTheDocument()
   })
 
-  it('advances on Space keypress', async () => {
-    const user = userEvent.setup()
+  it('advances on Space keypress', () => {
     render(<StackSlide levels={levels} animated />)
-    screen.getByRole('button').focus()
-    await user.keyboard(' ')
+    const button = screen.getByRole('button')
+    button.focus()
+    fireEvent.keyDown(button, { key: ' ', code: 'Space' })
     expect(screen.getByRole('button')).toBeInTheDocument()
   })
 
-  it('becomes non-interactive (tabIndex -1) after all levels are revealed', async () => {
-    const user = userEvent.setup()
+  it('becomes non-interactive (tabIndex -1) after all levels are revealed', () => {
     const singleLevel = [{ title: 'Only Layer', description: 'desc' }]
     render(<StackSlide levels={singleLevel} animated />)
     // One click reveals the single level; schedule.total === 1 so one click finishes it
-    await user.click(screen.getByRole('button'))
+    fireEvent.click(screen.getByRole('button'))
     expect(screen.getByRole('button')).toHaveAttribute('tabindex', '-1')
   })
 })

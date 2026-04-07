@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { GlossarySlide } from './GlossarySlide'
 import { SectionTitle } from '../common/SlideTitle'
 
@@ -16,17 +15,15 @@ describe('GlossarySlide', () => {
     expect(screen.getByText('Context Window')).toBeInTheDocument()
   })
 
-  it('reveals the first definition on click', async () => {
-    const user = userEvent.setup()
+  it('reveals the first definition on click', () => {
     render(<GlossarySlide terms={terms} />)
-    await user.click(screen.getByRole('button'))
+    fireEvent.click(screen.getByRole('button'))
     expect(screen.getByText('A unit of text processed by the model.')).toBeInTheDocument()
   })
 
-  it('removes the button role once all terms are revealed', async () => {
-    const user = userEvent.setup()
+  it('removes the button role once all terms are revealed', () => {
     render(<GlossarySlide terms={[{ term: 'T', definition: 'D' }]} />)
-    await user.click(screen.getByRole('button'))
+    fireEvent.click(screen.getByRole('button'))
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
@@ -41,11 +38,11 @@ describe('GlossarySlide', () => {
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Key Terms')
   })
 
-  it('advances on Enter keypress', async () => {
-    const user = userEvent.setup()
+  it('advances on Enter keypress', () => {
     render(<GlossarySlide terms={terms} />)
-    screen.getByRole('button').focus()
-    await user.keyboard('{Enter}')
+    const button = screen.getByRole('button')
+    button.focus()
+    fireEvent.keyDown(button, { key: 'Enter', code: 'Enter' })
     expect(screen.getByText('A unit of text processed by the model.')).toBeInTheDocument()
   })
 })
