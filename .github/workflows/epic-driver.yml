@@ -8,32 +8,34 @@ on:
   workflow_dispatch:
     inputs:
       issue_number:
-        description: 'Epic issue number to resume driving (required)'
+        description: "Epic issue number to drive"
         required: true
         type: string
 
 jobs:
-  drive-epic:
+  find-work:
+    name: Find unblocked issues
     if: |
       (github.event_name == 'issues' &&
        github.event.label.name == 'in-progress' &&
-       github.event.issue.pull_request == null) ||
+       github.event.issue.pull_request == '') ||
       (github.event_name == 'pull_request' &&
        github.event.pull_request.merged == true) ||
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
-      issues: write
-      id-token: write
-      actions: read
+      contents: read
+      issues: read
+      pull-requests: read
+    outputs:
+      has_work: ${{ steps.find-work.outputs.has_work }}
+      work_json: ${{ steps.find-work.outputs.work_json }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
+      - uses: astral-sh/setup-uv@v4
+
+      - name: Install shipyard
+        run: uv tool install "git+https://github.com/giacomov/shipyard@0.1.0"
 
       - name: Find epic and unblocked issues
         id: find-work
@@ -41,14 +43,56 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           EVENT_NAME: ${{ github.event_name }}
-          ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
-          PR_BODY: ${{ github.event.pull_request.body }}
-        run: node scripts/find-epic-work.mjs
+          ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number || '' }}
+          PR_BODY: ${{ github.event.pull_request.body || '' }}
+        run: shipyard find-work
 
-      - name: Run Claude Code
-        if: steps.find-work.outputs.has_work == 'true'
-        uses: anthropics/claude-code-action@v1
+  execute:
+    name: Execute tasks with Agent SDK
+    needs: find-work
+    if: needs.find-work.outputs.has_work == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
         with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          prompt: ${{ steps.find-work.outputs.prompt }}
-          claude_args: "--allowedTools Bash(*),Edit,Write,Glob,Grep,Read,WebSearch,WebFetch"
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+      - uses: astral-sh/setup-uv@v4
+
+      - name: Install shipyard
+        run: uv tool install "git+https://github.com/giacomov/shipyard@0.1.0"
+
+      - name: Write work JSON to file
+        env:
+          WORK_JSON: ${{ needs.find-work.outputs.work_json }}
+        run: python3 -c "import os; open('work.json','w').write(os.environ['WORK_JSON'])"
+
+      - name: Create implementation branch
+        run: |
+          EPIC=$(python3 -c "import json; print(json.load(open('work.json'))['epic_id'])")
+          BRANCH="shipyard/epic-${EPIC}-run-${{ github.run_id }}"
+          git checkout -b "$BRANCH"
+          echo "SHIPYARD_BRANCH=$BRANCH" >> "$GITHUB_ENV"
+
+      - name: Run agent pipeline
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: shipyard execute -i work.json
+
+      - name: Push branch and open pull request
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: shipyard publish-execution --branch "$SHIPYARD_BRANCH" -i work.json

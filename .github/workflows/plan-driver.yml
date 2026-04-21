@@ -1,0 +1,132 @@
+name: Plan Driver
+
+on:
+  issues:
+    types: [labeled]
+  pull_request_review:
+    types: [submitted]
+
+concurrency:
+  group: plan-driver-${{ github.event.pull_request.number || github.event.issue.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    name: Generate or update implementation plan
+    if: |
+      (github.event_name == 'issues' && github.event.label.name == 'plan') ||
+      (github.event_name == 'pull_request_review' && github.event.review.state == 'CHANGES_REQUESTED')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v4
+
+      - name: Install shipyard
+        run: uv tool install "git+https://github.com/giacomov/shipyard@0.1.0"
+
+      - name: Extract GitHub event context
+        id: extract-event
+        env:
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: shipyard extract-github-event
+
+      - name: Configure git identity
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+      - name: Checkout branch
+        run: |
+          REVIEW_TARGET="${{ steps.extract-event.outputs.review_target }}"
+          ISSUE="${{ steps.extract-event.outputs.issue_number }}"
+          git fetch origin
+          if [ "$REVIEW_TARGET" == "implementation" ]; then
+            git checkout "${{ steps.extract-event.outputs.branch_name }}"
+          elif [ "${{ steps.extract-event.outputs.has_review }}" == "true" ]; then
+            git checkout "plan/i${ISSUE}"
+          elif git ls-remote --exit-code origin "plan/i${ISSUE}" > /dev/null 2>&1; then
+            git checkout -b "plan/i${ISSUE}" "origin/plan/i${ISSUE}"
+          else
+            git checkout -b "plan/i${ISSUE}"
+          fi
+
+      - name: Generate or update plan
+        if: steps.extract-event.outputs.review_target != 'implementation'
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          EXTRA_ARGS=""
+          if [ "${{ steps.extract-event.outputs.has_review }}" == "true" ]; then
+            EXTRA_ARGS="--pr-number ${{ steps.extract-event.outputs.pr_number }} \
+              --review-feedback-file review-feedback.txt \
+              --existing-plan-path plans/i${{ steps.extract-event.outputs.issue_number }}.md"
+          fi
+          shipyard plan \
+            --prompt-file prompt.txt \
+            --issue-number ${{ steps.extract-event.outputs.issue_number }} \
+            --issue-title "${{ steps.extract-event.outputs.issue_title }}" \
+            $EXTRA_ARGS
+
+      - name: Address review feedback
+        if: steps.extract-event.outputs.review_target == 'implementation'
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shipyard execute \
+            --review-feedback-file review-feedback.txt \
+            --prompt-file prompt.txt
+
+      - name: Commit and publish plan
+        if: steps.extract-event.outputs.review_target != 'implementation'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ISSUE="${{ steps.extract-event.outputs.issue_number }}"
+          TITLE="${{ steps.extract-event.outputs.issue_title }}"
+          HAS_REVIEW="${{ steps.extract-event.outputs.has_review }}"
+          BRANCH="plan/i${ISSUE}"
+
+          git add "plans/i${ISSUE}.md"
+          if [ "$HAS_REVIEW" == "true" ]; then
+            git commit -m "docs: update implementation plan for issue #${ISSUE} (re-plan)"
+            git push origin "$BRANCH"
+          else
+            git commit -m "docs: add implementation plan for issue #${ISSUE}"
+            git push -u origin "$BRANCH"
+            if ! gh pr view "$BRANCH" --repo "${{ github.repository }}" > /dev/null 2>&1; then
+              gh label create plan --color "0052cc" --description "Implementation plan" \
+                --repo "${{ github.repository }}" 2>/dev/null || true
+              PR_URL=$(gh pr create \
+                --base main --head "$BRANCH" \
+                --title "Plan: ${TITLE}" \
+                --body "Closes #${ISSUE}" \
+                --label plan \
+                --repo "${{ github.repository }}")
+              gh issue comment "${ISSUE}" \
+                --repo "${{ github.repository }}" \
+                --body "Shipyard has created a plan for this issue: ${PR_URL}"
+            fi
+          fi
+
+      - name: Push revision and notify
+        if: steps.extract-event.outputs.review_target == 'implementation'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BRANCH="${{ steps.extract-event.outputs.branch_name }}"
+          git push origin "$BRANCH"
+          gh pr comment ${{ steps.extract-event.outputs.pr_number }} \
+            --repo "${{ github.repository }}" \
+            --body "Shipyard has addressed the review feedback. Please review the latest changes."
