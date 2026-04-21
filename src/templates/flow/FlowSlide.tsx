@@ -83,7 +83,7 @@ export function FlowSlide({
 
   return (
     <SlideLayout header={header}>
-      <div className="flex-1 min-h-0 rounded-sm overflow-hidden relative" style={{ background: COLOR_BACKGROUND}}>
+      <div className="flex-1 min-h-0 rounded-sm overflow-hidden relative" style={{ background: COLOR_BACKGROUND }}>
         <ReactFlow
           nodes={editMode ? editNodes : laidOutNodes}
           edges={edges}
@@ -102,7 +102,7 @@ export function FlowSlide({
           fitView={!editMode}
           fitViewOptions={{ padding: 0.15 }}
           proOptions={{ hideAttribution: true }}
-          style={{ background: COLOR_BACKGROUND}}
+          style={{ background: COLOR_BACKGROUND }}
         >
           <Background
             variant={BackgroundVariant.Dots}

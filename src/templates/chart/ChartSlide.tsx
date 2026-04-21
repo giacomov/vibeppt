@@ -1,6 +1,6 @@
 import type { ReactNode, CSSProperties } from 'react'
 import { SlideLayout } from '../common/SlideLayout'
-import { COLOR_ACCENT, COLOR_MUTED, COLOR_SURFACE } from '../../constants'
+import { COLOR_ACCENT, COLOR_MUTED, COLOR_SURFACE, COLOR_TEXT } from '../../constants'
 import {
   BarChart,
   Bar,
@@ -30,7 +30,7 @@ const tooltipStyle: CSSProperties = {
   borderRadius: '6px',
   fontFamily: 'var(--font-mono)',
   fontSize: '13px',
-  color: 'rgb(var(--color-text))',
+  color: COLOR_TEXT,
   boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
 }
 
