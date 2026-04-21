@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
+import { SlideLayout } from '../common/SlideLayout'
 
 export interface CompareRow {
   label: string
@@ -176,12 +177,7 @@ function TugRow({
 
 export function CompareSlide({ left, right, rows, header }: CompareSlideProps): ReactNode {
   return (
-    <div
-      className="w-full h-full bg-background flex flex-col overflow-hidden"
-      style={{ padding: '52px 80px' }}
-    >
-      {header && <div className="flex-shrink-0 mb-5">{header}</div>}
-
+    <SlideLayout header={header}>
       {/* Entity names — aligned with the track area */}
       <div className="flex-shrink-0 flex items-end gap-8 mb-4">
         <div style={{ width: '160px', flexShrink: 0 }} />
@@ -221,6 +217,6 @@ export function CompareSlide({ left, right, rows, header }: CompareSlideProps): 
           />
         ))}
       </div>
-    </div>
+    </SlideLayout>
   )
 }

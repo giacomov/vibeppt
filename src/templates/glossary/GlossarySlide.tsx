@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import type { ReactNode, KeyboardEvent } from 'react'
+import { SlideLayout } from '../common/SlideLayout'
 
 export interface GlossaryTerm {
   term: string
@@ -24,9 +25,9 @@ export function GlossarySlide({ terms, header }: GlossarySlideProps): ReactNode 
   const allRevealed = revealed >= terms.length
 
   return (
-    <div
-      className="w-full h-full bg-background flex flex-col overflow-hidden"
-      style={{ padding: '60px 80px', cursor: allRevealed ? undefined : 'pointer' }}
+    <SlideLayout
+      header={header}
+      style={{ cursor: allRevealed ? undefined : 'pointer' }}
       role={allRevealed ? undefined : 'button'}
       tabIndex={allRevealed ? -1 : 0}
       onClick={allRevealed ? undefined : advance}
@@ -37,8 +38,6 @@ export function GlossarySlide({ terms, header }: GlossarySlideProps): ReactNode 
         }
       }}
     >
-      {header && <div className="flex-shrink-0 mb-10">{header}</div>}
-
       <div className="flex-1 flex flex-col gap-4 justify-center">
         {terms.map((entry, i) => {
           const defVisible = i < revealed
@@ -86,6 +85,6 @@ export function GlossarySlide({ terms, header }: GlossarySlideProps): ReactNode 
           )
         })}
       </div>
-    </div>
+    </SlideLayout>
   )
 }

@@ -664,6 +664,7 @@ src/templates/[name]/
 
 ```tsx
 import type { ReactNode } from 'react'
+import { SlideLayout } from '../common/SlideLayout'
 
 export interface [Name]SlideProps {
   header?: ReactNode
@@ -671,11 +672,9 @@ export interface [Name]SlideProps {
 
 export function [Name]Slide({ header }: [Name]SlideProps): ReactNode {
   return (
-    <div className="w-full h-full bg-background flex flex-col overflow-hidden"
-         style={{ padding: '60px 80px' }}>
-      {header && <div className="flex-shrink-0 mb-10">{header}</div>}
+    <SlideLayout header={header}>
       {/* content */}
-    </div>
+    </SlideLayout>
   )
 }
 ```

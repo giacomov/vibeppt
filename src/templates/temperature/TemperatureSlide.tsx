@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
+import { SlideLayout } from '../common/SlideLayout'
 
 export interface TemperaturePoint {
   /** Position on the gauge, 0–100 */
@@ -72,12 +73,7 @@ export function TemperatureSlide({
   })()
 
   return (
-    <div
-      className="w-full h-full bg-background flex flex-col overflow-hidden"
-      style={{ padding: '60px 80px' }}
-    >
-      {header && <div className="flex-shrink-0 mb-10">{header}</div>}
-
+    <SlideLayout header={header}>
       <div className="flex-1 flex flex-col justify-center" style={{ gap: '0px' }}>
         {/* Endpoint labels */}
         <div className="flex justify-between" style={{ marginBottom: '10px', padding: '0 4px' }}>
@@ -189,6 +185,6 @@ export function TemperatureSlide({
           })}
         </div>
       </div>
-    </div>
+    </SlideLayout>
   )
 }

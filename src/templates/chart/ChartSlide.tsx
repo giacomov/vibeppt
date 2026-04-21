@@ -1,4 +1,5 @@
 import type { ReactNode, CSSProperties } from 'react'
+import { SlideLayout } from '../common/SlideLayout'
 import {
   BarChart,
   Bar,
@@ -122,13 +123,8 @@ export function ChartSlide({ chartType, data, header }: ChartSlideProps): ReactN
     )
 
   return (
-    <div
-      className="w-full h-full bg-background flex flex-col overflow-hidden"
-      style={{ padding: '52px 72px 48px' }}
-    >
-      {header && <div className="flex-shrink-0 mb-8">{header}</div>}
-
+    <SlideLayout header={header}>
       <div className="flex-1 min-h-0">{chart}</div>
-    </div>
+    </SlideLayout>
   )
 }
