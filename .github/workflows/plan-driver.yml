@@ -31,7 +31,7 @@ jobs:
       - uses: astral-sh/setup-uv@v4
 
       - name: Install shipyard
-        run: uv tool install "git+https://github.com/giacomov/shipyard@0.1.0"
+        run: uv tool install "git+https://github.com/giacomov/shipyard@main"
 
       - name: Extract GitHub event context
         id: extract-event
