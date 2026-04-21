@@ -79,6 +79,7 @@ src/
     theend/           TheEndSlide.tsx + example.tsx
     stack/            StackSlide.tsx + example.tsx
     common/
+      SlideLayout.tsx ← shared root wrapper for content slides
       SlideTitle.tsx  ← HeroTitle, SectionTitle, SubsectionTitle
   components/
     SlideWrapper.tsx
