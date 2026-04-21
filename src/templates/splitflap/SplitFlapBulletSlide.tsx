@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { SplitFlapChar } from '../common/SplitFlapChar'
+import { SlideLayout } from '../common/SlideLayout'
 
 export interface SplitFlapBulletSlideProps {
   bullets: string[]
@@ -18,9 +19,7 @@ export function SplitFlapBulletSlide({ bullets, header }: SplitFlapBulletSlidePr
   })
 
   return (
-    <div className="w-full h-full bg-background flex flex-col overflow-hidden" style={{ padding: '60px 80px' }}>
-      {header && <div className="flex-shrink-0 mb-10">{header}</div>}
-
+    <SlideLayout header={header}>
       {/* Bullets */}
       <div className="flex flex-col justify-center flex-1 gap-0">
         {bullets.map((bullet, bulletIdx) => {
@@ -61,6 +60,6 @@ export function SplitFlapBulletSlide({ bullets, header }: SplitFlapBulletSlidePr
           )
         })}
       </div>
-    </div>
+    </SlideLayout>
   )
 }

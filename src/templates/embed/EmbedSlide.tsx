@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
+import { SlideLayout } from '../common/SlideLayout'
 
 export interface EmbedSlideProps {
   /** URL to embed */
@@ -152,12 +153,7 @@ export function EmbedSlide({
   const displayUrl = safeSrc === 'about:blank' ? src : src.replace(/^https?:\/\//, '')
 
   return (
-    <div
-      className="w-full h-full bg-background flex flex-col overflow-hidden"
-      style={{ padding: '52px 80px' }}
-    >
-      {header && <div className="flex-shrink-0 mb-6">{header}</div>}
-
+    <SlideLayout header={header}>
       {/* Browser frame */}
       <div
         className="flex-1 flex flex-col min-h-0 rounded-xl overflow-hidden"
@@ -265,6 +261,6 @@ export function EmbedSlide({
           )}
         </div>
       </div>
-    </div>
+    </SlideLayout>
   )
 }

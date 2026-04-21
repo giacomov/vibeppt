@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react'
 import type { ReactNode, KeyboardEvent } from 'react'
+import { SlideLayout } from '../common/SlideLayout'
 
 export interface StackItem {
   label: string
@@ -97,9 +98,9 @@ export function StackSlide({ levels, header, groups, footer, animated }: StackSl
   }
 
   return (
-    <div
-      className="w-full h-full bg-background flex flex-col overflow-hidden"
-      style={{ padding: '52px 80px', cursor: animated && schedule && step < schedule.total ? 'pointer' : undefined }}
+    <SlideLayout
+      header={header}
+      style={{ cursor: animated && schedule && step < schedule.total ? 'pointer' : undefined }}
       role={animated ? 'button' : undefined}
       tabIndex={animated && schedule && step < schedule.total ? 0 : -1}
       onClick={animated ? advance : undefined}
@@ -110,8 +111,6 @@ export function StackSlide({ levels, header, groups, footer, animated }: StackSl
         }
       } : undefined}
     >
-      {header && <div className="flex-shrink-0 mb-8">{header}</div>}
-
       <div className="flex-1 flex min-h-0">
         {/* Group labels column */}
         {hasGroups && (
@@ -286,6 +285,6 @@ export function StackSlide({ levels, header, groups, footer, animated }: StackSl
           </div>
         </Reveal>
       )}
-    </div>
+    </SlideLayout>
   )
 }

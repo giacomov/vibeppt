@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { SlideLayout } from '../common/SlideLayout'
 
 // Card face intentionally uses hard-coded colors to simulate a physical playing card.
 // The off-white background, red/black suit colors, and shadow values are design constants
@@ -41,9 +42,7 @@ export function CardSlide({
   animationDuration = 500,
 }: CardSlideProps): ReactNode {
   return (
-    <div className="w-full h-full bg-background flex flex-col overflow-hidden" style={{ padding: '60px 80px' }}>
-      {header && <div className="flex-shrink-0 mb-10">{header}</div>}
-
+    <SlideLayout header={header}>
       {/* Card fan */}
       <div
         className="flex-1 flex items-center justify-center"
@@ -129,6 +128,6 @@ export function CardSlide({
           )
         })}
       </div>
-    </div>
+    </SlideLayout>
   )
 }

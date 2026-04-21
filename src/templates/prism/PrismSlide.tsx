@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
+import { SlideLayout } from '../common/SlideLayout'
 
 export interface PrismItem {
   label: string
@@ -152,12 +153,7 @@ export function PrismSlide({
   })
 
   return (
-    <div
-      className="w-full h-full bg-background flex flex-col overflow-hidden"
-      style={{ padding: '52px 80px' }}
-    >
-      {header && <div className="flex-shrink-0 mb-3">{header}</div>}
-
+    <SlideLayout header={header}>
       <div className="flex-1 relative min-h-0">
         <svg
           viewBox={`0 0 ${VW} ${VH}`}
@@ -328,6 +324,6 @@ export function PrismSlide({
           ))}
         </svg>
       </div>
-    </div>
+    </SlideLayout>
   )
 }

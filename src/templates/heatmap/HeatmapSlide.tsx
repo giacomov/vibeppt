@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { SlideLayout } from '../common/SlideLayout'
 
 export interface HeatmapSlideProps {
   /** Row/column labels. Use `null` for an ellipsis gap row/column. */
@@ -22,12 +23,7 @@ export function HeatmapSlide({
   colAxisLabel = 'Key',
 }: HeatmapSlideProps): ReactNode {
   return (
-    <div
-      className="w-full h-full bg-background flex flex-col overflow-hidden"
-      style={{ padding: '52px 80px' }}
-    >
-      {header && <div className="flex-shrink-0 mb-6">{header}</div>}
-
+    <SlideLayout header={header}>
       <div className="flex-1 flex items-center justify-center min-h-0">
         <div className="flex gap-0">
           {/* Row axis label */}
@@ -177,6 +173,6 @@ export function HeatmapSlide({
           </div>
         </div>
       </div>
-    </div>
+    </SlideLayout>
   )
 }

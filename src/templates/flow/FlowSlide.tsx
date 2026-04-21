@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef, type ReactNode, type CSSProperties } from 'react'
+import { SlideLayout } from '../common/SlideLayout'
 import {
   ReactFlow,
   Background,
@@ -86,12 +87,7 @@ export function FlowSlide({
   }
 
   return (
-    <div
-      className="w-full h-full bg-background flex flex-col overflow-hidden"
-      style={{ padding: '52px 72px 48px' }}
-    >
-      {header && <div className="flex-shrink-0 mb-6">{header}</div>}
-
+    <SlideLayout header={header}>
       <div className="flex-1 min-h-0 rounded-sm overflow-hidden relative" style={{ background: BG }}>
         <ReactFlow
           nodes={editMode ? editNodes : laidOutNodes}
@@ -143,6 +139,6 @@ export function FlowSlide({
           </button>
         )}
       </div>
-    </div>
+    </SlideLayout>
   )
 }
