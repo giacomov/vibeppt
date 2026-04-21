@@ -9,7 +9,6 @@ export interface BulletSlideProps {
 export function BulletSlide({ bullets, header }: BulletSlideProps): ReactNode {
   return (
     <SlideLayout header={header}>
-
       {/* Bullets */}
       <div className="flex flex-col justify-center flex-1 gap-0">
         {bullets.map((bullet, i) => (

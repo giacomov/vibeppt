@@ -60,4 +60,12 @@ describe('SlideLayout', () => {
     expect(root.className).toContain('bg-background')
     expect(root.className).toContain('flex-col')
   })
+
+  it('does not allow style prop to override base padding', () => {
+    const { container } = render(
+      <SlideLayout style={{ padding: '0px' }}><span>content</span></SlideLayout>,
+    )
+    const root = container.firstChild as HTMLElement
+    expect(root.style.padding).toBe('60px 80px')
+  })
 })
