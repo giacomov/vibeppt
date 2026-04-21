@@ -120,7 +120,7 @@ export function FlowSlide({
               right: 16,
               zIndex: 10,
               background: copied ? COLOR_ACCENT : COLOR_SURFACE,
-              color: copied ? COLOR_BACKGROUND: COLOR_TEXT,
+              color: copied ? COLOR_BACKGROUND : COLOR_TEXT,
               border: `1px solid ${COLOR_ACCENT}`,
               borderRadius: '6px',
               padding: '8px 16px',
