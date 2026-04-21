@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef, type ReactNode, type CSSProperties } from 'react'
 import { SlideLayout } from '../common/SlideLayout'
+import { COLOR_ACCENT, COLOR_MUTED, COLOR_SURFACE, COLOR_BACKGROUND, COLOR_TEXT } from '../../constants'
 import {
   ReactFlow,
   Background,
@@ -13,24 +14,18 @@ import { applyDagreLayout, type FlowNode } from './layout'
 
 export type { FlowNode, Node, Edge }
 
-const ACCENT  = 'rgb(var(--color-accent))'
-const MUTED   = 'rgb(var(--color-muted))'
-const SURFACE = 'rgb(var(--color-surface))'
-const BG      = 'rgb(var(--color-background))'
-const TEXT    = 'rgb(var(--color-text))'
-
 export const defaultNodeStyle: CSSProperties = {
-  background: SURFACE,
-  border: `1px solid ${ACCENT}`,
+  background: COLOR_SURFACE,
+  border: `1px solid ${COLOR_ACCENT}`,
   borderRadius: '6px',
-  color: TEXT,
+  color: COLOR_TEXT,
   fontFamily: 'var(--font-body)',
   fontSize: '14px',
   padding: '10px 16px',
 }
 
 const defaultEdgeOptions = {
-  style: { stroke: MUTED, strokeWidth: 1.5 },
+  style: { stroke: COLOR_MUTED, strokeWidth: 1.5 },
   animated: false,
 }
 
@@ -88,7 +83,7 @@ export function FlowSlide({
 
   return (
     <SlideLayout header={header}>
-      <div className="flex-1 min-h-0 rounded-sm overflow-hidden relative" style={{ background: BG }}>
+      <div className="flex-1 min-h-0 rounded-sm overflow-hidden relative" style={{ background: COLOR_BACKGROUND }}>
         <ReactFlow
           nodes={editMode ? editNodes : laidOutNodes}
           edges={edges}
@@ -107,7 +102,7 @@ export function FlowSlide({
           fitView={!editMode}
           fitViewOptions={{ padding: 0.15 }}
           proOptions={{ hideAttribution: true }}
-          style={{ background: BG }}
+          style={{ background: COLOR_BACKGROUND }}
         >
           <Background
             variant={BackgroundVariant.Dots}
@@ -124,9 +119,9 @@ export function FlowSlide({
               bottom: 16,
               right: 16,
               zIndex: 10,
-              background: copied ? ACCENT : SURFACE,
-              color: copied ? BG : TEXT,
-              border: `1px solid ${ACCENT}`,
+              background: copied ? COLOR_ACCENT : COLOR_SURFACE,
+              color: copied ? COLOR_BACKGROUND : COLOR_TEXT,
+              border: `1px solid ${COLOR_ACCENT}`,
               borderRadius: '6px',
               padding: '8px 16px',
               fontFamily: 'var(--font-body)',
