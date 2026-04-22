@@ -14,6 +14,18 @@ export interface TimelineSlideProps {
   direction?: 'horizontal' | 'vertical'
 }
 
+function TimelineItemContent({ item }: { item: TimelineItem }): ReactNode {
+  return (
+    <>
+      <span className="font-mono text-accent" style={{ fontSize: '12px', letterSpacing: '0.1em' }}>{item.date}</span>
+      <span className="font-display text-slide-text text-center mt-1" style={{ fontSize: '15px' }}>{item.label}</span>
+      {item.description && (
+        <span className="font-body text-muted text-center" style={{ fontSize: '12px', marginTop: '3px' }}>{item.description}</span>
+      )}
+    </>
+  )
+}
+
 function HorizontalTimeline({ items }: { items: TimelineItem[] }): ReactNode {
   return (
     <div className="flex flex-col justify-center flex-1">
@@ -33,16 +45,12 @@ function HorizontalTimeline({ items }: { items: TimelineItem[] }): ReactNode {
                 className="flex flex-col items-center animate-fade-up"
                 style={{ animationDelay: `${i * 100}ms` }}
               >
-                {/* Content above */}
+                {/* Slot above node — content rendered only when isAbove, placeholder otherwise */}
                 <div
                   className="flex flex-col items-center pb-3"
-                  style={{ minHeight: '80px', justifyContent: isAbove ? 'flex-end' : 'flex-start', visibility: isAbove ? 'visible' : 'hidden' }}
+                  style={{ minHeight: '80px', justifyContent: 'flex-end' }}
                 >
-                  <span className="font-mono text-accent" style={{ fontSize: '12px', letterSpacing: '0.1em' }}>{item.date}</span>
-                  <span className="font-display text-slide-text text-center mt-1" style={{ fontSize: '15px' }}>{item.label}</span>
-                  {item.description && (
-                    <span className="font-body text-muted text-center" style={{ fontSize: '12px', marginTop: '3px' }}>{item.description}</span>
-                  )}
+                  {isAbove && <TimelineItemContent item={item} />}
                 </div>
 
                 {/* Node */}
@@ -51,16 +59,12 @@ function HorizontalTimeline({ items }: { items: TimelineItem[] }): ReactNode {
                   style={{ width: nodeSize, height: nodeSize, flexShrink: 0 }}
                 />
 
-                {/* Content below */}
+                {/* Slot below node — content rendered only when !isAbove, placeholder otherwise */}
                 <div
                   className="flex flex-col items-center pt-3"
-                  style={{ minHeight: '80px', justifyContent: 'flex-start', visibility: isAbove ? 'hidden' : 'visible' }}
+                  style={{ minHeight: '80px', justifyContent: 'flex-start' }}
                 >
-                  <span className="font-mono text-accent" style={{ fontSize: '12px', letterSpacing: '0.1em' }}>{item.date}</span>
-                  <span className="font-display text-slide-text text-center mt-1" style={{ fontSize: '15px' }}>{item.label}</span>
-                  {item.description && (
-                    <span className="font-body text-muted text-center" style={{ fontSize: '12px', marginTop: '3px' }}>{item.description}</span>
-                  )}
+                  {!isAbove && <TimelineItemContent item={item} />}
                 </div>
               </div>
             )

@@ -94,24 +94,26 @@ export function MatrixSlide({
             <Quadrant quadrant={bottomRight} />
           </div>
 
-          {/* X-axis label row */}
+          {/* X-axis label row — always render all three slots so the center label stays centered */}
           <div className="flex items-center justify-between px-2" style={{ height: '24px' }}>
-            {xAxis.lowLabel && (
-              <span className="font-mono text-muted" style={{ fontSize: '11px', letterSpacing: '0.08em' }}>
-                {xAxis.lowLabel}
-              </span>
-            )}
             <span
-              className="font-mono text-muted mx-auto"
+              className="font-mono text-muted"
+              style={{ fontSize: '11px', letterSpacing: '0.08em', visibility: xAxis.lowLabel ? 'visible' : 'hidden' }}
+            >
+              {xAxis.lowLabel ?? ''}
+            </span>
+            <span
+              className="font-mono text-muted"
               style={{ fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase' }}
             >
               {xAxis.label}
             </span>
-            {xAxis.highLabel && (
-              <span className="font-mono text-muted" style={{ fontSize: '11px', letterSpacing: '0.08em' }}>
-                {xAxis.highLabel}
-              </span>
-            )}
+            <span
+              className="font-mono text-muted"
+              style={{ fontSize: '11px', letterSpacing: '0.08em', visibility: xAxis.highLabel ? 'visible' : 'hidden' }}
+            >
+              {xAxis.highLabel ?? ''}
+            </span>
           </div>
         </div>
       </div>
