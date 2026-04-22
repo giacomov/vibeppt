@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Star } from 'lucide-react'
 import { TitleChrome } from '../common/TitleChrome'
+import { initials } from '../common/initials'
 
 export interface TestimonialSlideProps {
   quote: string
@@ -9,15 +10,6 @@ export interface TestimonialSlideProps {
   company?: string
   avatarUrl?: string
   rating?: number
-}
-
-function initials(name: string): string {
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
 }
 
 export function TestimonialSlide({ quote, author, role, company, avatarUrl, rating }: TestimonialSlideProps): ReactNode {
@@ -35,12 +27,10 @@ export function TestimonialSlide({ quote, author, role, company, avatarUrl, rati
         }}
       />
 
-      {/* Content card */}
       <div
         className="relative z-10 bg-surface rounded-2xl p-12 flex flex-col animate-fade-up"
         style={{ maxWidth: '760px', width: '100%' }}
       >
-        {/* Star rating */}
         {clampedRating !== undefined && (
           <div className="flex items-center gap-1 mb-6">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -53,7 +43,6 @@ export function TestimonialSlide({ quote, author, role, company, avatarUrl, rati
           </div>
         )}
 
-        {/* Decorative open-quote accent */}
         <div
           className="font-display font-bold text-accent select-none leading-none mb-2"
           style={{ fontSize: '72px', opacity: 0.6, lineHeight: 0.8 }}
@@ -62,7 +51,6 @@ export function TestimonialSlide({ quote, author, role, company, avatarUrl, rati
           &ldquo;
         </div>
 
-        {/* Quote text */}
         <blockquote
           className="font-body italic text-slide-text leading-relaxed"
           style={{ fontSize: '24px' }}
@@ -70,12 +58,9 @@ export function TestimonialSlide({ quote, author, role, company, avatarUrl, rati
           {quote}
         </blockquote>
 
-        {/* Separator */}
-        <div className="border-t border-white/10 my-8" />
+        <div className="border-t border-slide-text/10 my-8" />
 
-        {/* Author row */}
         <div className="flex items-center gap-4">
-          {/* Avatar */}
           <div
             className="rounded-full overflow-hidden flex items-center justify-center bg-accent/20 flex-shrink-0"
             style={{ width: '48px', height: '48px' }}
@@ -89,7 +74,6 @@ export function TestimonialSlide({ quote, author, role, company, avatarUrl, rati
             )}
           </div>
 
-          {/* Name + role/company */}
           <div className="flex flex-col gap-0.5">
             <span className="font-display font-bold text-slide-text" style={{ fontSize: '17px' }}>
               {author}

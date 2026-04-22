@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Linkedin } from 'lucide-react'
 import { SlideLayout } from '../common/SlideLayout'
+import { initials } from '../common/initials'
 
 export interface TeamMember {
   name: string
@@ -15,22 +16,13 @@ export interface TeamSlideProps {
   columns?: 2 | 3 | 4
 }
 
-function initials(name: string): string {
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-}
-
 function autoColumns(count: number): 2 | 3 | 4 {
   if (count <= 2) return 2
   if (count <= 6) return 3
   return 4
 }
 
-const COL_CLASSES: Record<number, string> = {
+const COL_CLASSES: Record<2 | 3 | 4, string> = {
   2: 'grid-cols-2',
   3: 'grid-cols-3',
   4: 'grid-cols-4',
@@ -49,7 +41,6 @@ export function TeamSlide({ header, members, columns }: TeamSlideProps): ReactNo
             className="bg-surface rounded-xl flex flex-col items-center text-center p-6 gap-3 animate-fade-up"
             style={{ animationDelay: `${i * 70}ms` }}
           >
-            {/* Avatar */}
             <div
               className="rounded-full overflow-hidden flex items-center justify-center bg-accent/20 flex-shrink-0"
               style={{ width: '72px', height: '72px' }}
@@ -67,7 +58,6 @@ export function TeamSlide({ header, members, columns }: TeamSlideProps): ReactNo
               )}
             </div>
 
-            {/* Name */}
             <div className="flex flex-col gap-1">
               <span className="font-display font-bold text-slide-text" style={{ fontSize: '18px' }}>
                 {member.name}
@@ -77,7 +67,6 @@ export function TeamSlide({ header, members, columns }: TeamSlideProps): ReactNo
               </span>
             </div>
 
-            {/* LinkedIn */}
             {member.linkedIn && (
               <a
                 href={member.linkedIn}

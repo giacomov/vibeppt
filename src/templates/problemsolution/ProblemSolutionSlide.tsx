@@ -20,7 +20,6 @@ export function ProblemSolutionSlide({ header, problem, solution }: ProblemSolut
   return (
     <SlideLayout header={header}>
       <div className="grid grid-cols-2 flex-1 gap-0">
-        {/* Problem column */}
         <div className="pr-10 flex flex-col">
           <div className="mb-6 flex items-center gap-3">
             <span
@@ -46,7 +45,6 @@ export function ProblemSolutionSlide({ header, problem, solution }: ProblemSolut
           </div>
         </div>
 
-        {/* Solution column */}
         <div className="pl-10 border-l border-surface flex flex-col">
           <div className="mb-6 flex items-center gap-3">
             <span

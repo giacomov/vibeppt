@@ -36,7 +36,7 @@ function ColumnItems({ items }: { items: string[] | ReactNode }) {
   return <>{items}</>
 }
 
-const RATIO_CLASSES: Record<string, string> = {
+const RATIO_CLASSES: Record<'50/50' | '40/60' | '60/40', string> = {
   '50/50': 'grid-cols-2',
   '40/60': 'grid-cols-[2fr_3fr]',
   '60/40': 'grid-cols-[3fr_2fr]',
@@ -49,7 +49,6 @@ export function TwoColumnSlide({ header, left, right, ratio = '50/50' }: TwoColu
   return (
     <SlideLayout header={header}>
       <div className={`grid ${gridClass} flex-1 gap-0`}>
-        {/* Left column */}
         <div className={showDivider ? 'pr-10' : 'pr-8'}>
           {left.title && (
             <div className="mb-6">
@@ -62,8 +61,7 @@ export function TwoColumnSlide({ header, left, right, ratio = '50/50' }: TwoColu
           <ColumnItems items={left.items} />
         </div>
 
-        {/* Right column */}
-        <div className={`${showDivider ? 'pl-10 border-l border-surface' : 'pl-8'}`}>
+        <div className={showDivider ? 'pl-10 border-l border-surface' : 'pl-8'}>
           {right.title && (
             <div className="mb-6">
               <h3 className="font-display font-bold text-slide-text" style={{ fontSize: '22px' }}>
