@@ -78,6 +78,11 @@ src/
     sectiontitle/     SectionTitleSlide.tsx + example.tsx
     theend/           TheEndSlide.tsx + example.tsx
     stack/            StackSlide.tsx + example.tsx
+    sectiondivider/   SectionDividerSlide.tsx + example.tsx
+    agenda/           AgendaSlide.tsx + example.tsx
+    toc/              TableOfContentsSlide.tsx + example.tsx
+    closing/          ClosingSlide.tsx + example.tsx
+    quote/            QuoteSlide.tsx + example.tsx
     common/
       SlideLayout.tsx ← shared root wrapper for content slides
       SlideTitle.tsx  ← HeroTitle, SectionTitle, SubsectionTitle
@@ -623,12 +628,116 @@ No `header` prop. `subtitle` is the only customizable text.
 
 ---
 
+### `SectionDividerSlide`
+**Use for:** Full-bleed visual pause between major sections with a custom background color or image.
+
+```tsx
+import { SectionDividerSlide } from '../../src/templates/sectiondivider/SectionDividerSlide'
+
+<SectionDividerSlide
+  eyebrow="Part 2"
+  title="The Data Layer"
+  subtitle="How we store, query, and serve information at scale."
+/>
+```
+
+Supports `backgroundColor` (CSS color string) and `backgroundImage` (URL) props — both add a dark overlay for legibility. Title is static (no animation). `overlayOpacity` defaults to `0.55`.
+
+---
+
+### `AgendaSlide`
+**Use for:** Numbered list of topics with optional time estimates.
+
+```tsx
+import { AgendaSlide } from '../../src/templates/agenda/AgendaSlide'
+import { SectionTitle } from '../../src/templates/common/SlideTitle'
+
+<AgendaSlide
+  header={<SectionTitle title="Today's Agenda" />}
+  items={[
+    { label: 'State of the Platform', time: '10 min' },
+    { label: 'Q3 Results & Metrics', time: '15 min' },
+    { label: 'Roadmap Preview', time: '20 min' },
+    { label: 'Open Q&A', time: '15 min' },
+  ]}
+/>
+```
+
+`time` is optional per item. Row layout: number (mono/accent) → label → optional time (mono/muted).
+
+---
+
+### `TableOfContentsSlide`
+**Use for:** Visual grid overview of sections with numbers, titles, optional icons and subtitles.
+
+```tsx
+import { TableOfContentsSlide } from '../../src/templates/toc/TableOfContentsSlide'
+import { SectionTitle } from '../../src/templates/common/SlideTitle'
+import { Database, Zap, Shield } from 'lucide-react'
+
+<TableOfContentsSlide
+  header={<SectionTitle title="What We'll Cover" />}
+  columns={3}
+  items={[
+    { title: 'Architecture', icon: <Database size={18} />, subtitle: 'How the system is structured' },
+    { title: 'Performance', icon: <Zap size={18} />, subtitle: 'Speed and scalability goals' },
+    { title: 'Security', icon: <Shield size={18} />, subtitle: 'Threat model and mitigations' },
+  ]}
+/>
+```
+
+`columns` is `2` or `3` (default `3`). Cells stagger in with `animate-fade-up`.
+
+---
+
+### `ClosingSlide`
+**Use for:** Final human-facing slide — thank you, call to action, contact info.
+
+```tsx
+import { ClosingSlide } from '../../src/templates/closing/ClosingSlide'
+
+<ClosingSlide
+  cta="Get In Touch"
+  headline="Thank You"
+  subtitle="Questions? Let's keep the conversation going."
+  contact={{
+    email: 'ada@lovelace.io',
+    website: 'lovelace.io',
+    linkedIn: 'in/ada-lovelace',
+  }}
+/>
+```
+
+`headline` defaults to `"Thank You"`. Uses per-character `letter-rise` animation (same as `TheEndSlide`). Contact fields rendered with Lucide icons (`Mail`, `Globe`, `Linkedin`).
+
+---
+
+### `QuoteSlide`
+**Use for:** Single large pull quote with attribution.
+
+```tsx
+import { QuoteSlide } from '../../src/templates/quote/QuoteSlide'
+
+<QuoteSlide
+  quote="The best way to predict the future is to invent it."
+  attribution="Alan Kay"
+  role="Computer Scientist"
+/>
+```
+
+Full-bleed centered layout with decorative oversized `"` glyph. Attribution separator uses `animate-line-expand`. `role` is optional.
+
+---
+
 ## Template Decision Guide
 
 | Content type | Template |
 |---|---|
 | Deck opening | `TitleSlide` |
-| Section divider | `SectionTitleSlide` |
+| Section divider (animated split-flap) | `SectionTitleSlide` |
+| Section divider (static, custom background) | `SectionDividerSlide` |
+| Numbered list with optional times | `AgendaSlide` |
+| Grid overview of sections | `TableOfContentsSlide` |
 | 2–6 key points or list items | `BulletSlide` |
 | Key points with split-flap reveal | `SplitFlapBulletSlide` |
 | Punchy concluding statements (click-reveal) | `KeyTakeawaySlide` |
@@ -645,6 +754,8 @@ No `header` prop. `subtitle` is the only customizable text.
 | Horizontal spectrum gauge | `TemperatureSlide` |
 | Vertically stacked tech layers | `StackSlide` |
 | Embed live web content / demo | `EmbedSlide` |
+| Single pull quote with attribution | `QuoteSlide` |
+| Final thank-you / CTA / contact | `ClosingSlide` |
 | Closing / conclusion | `TheEndSlide` |
 
 ---

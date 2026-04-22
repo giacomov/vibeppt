@@ -22,6 +22,11 @@ import { TemperatureSlide } from './temperature/TemperatureSlide'
 import { StackSlide } from './stack/StackSlide'
 import { EmbedSlide } from './embed/EmbedSlide'
 import { TheEndSlide } from './theend/TheEndSlide'
+import { SectionDividerSlide } from './sectiondivider/SectionDividerSlide'
+import { AgendaSlide } from './agenda/AgendaSlide'
+import { TableOfContentsSlide } from './toc/TableOfContentsSlide'
+import { ClosingSlide } from './closing/ClosingSlide'
+import { QuoteSlide } from './quote/QuoteSlide'
 
 beforeAll(() => {
   // @xyflow/react (used by FlowSlide) requires ResizeObserver
@@ -202,6 +207,51 @@ describe('Template smoke tests', () => {
 
   it('TheEndSlide renders without crashing', () => {
     const { container } = render(<TheEndSlide />)
+    expect(container.firstChild).toBeTruthy()
+  })
+
+  it('SectionDividerSlide renders without crashing', () => {
+    const { container } = render(<SectionDividerSlide title="Chapter One" />)
+    expect(container.firstChild).toBeTruthy()
+  })
+
+  it('AgendaSlide renders without crashing', () => {
+    const { container } = render(
+      <AgendaSlide
+        items={[
+          { label: 'Intro', time: '5 min' },
+          { label: 'Deep Dive' },
+        ]}
+      />
+    )
+    expect(container.firstChild).toBeTruthy()
+  })
+
+  it('TableOfContentsSlide renders without crashing', () => {
+    const { container } = render(
+      <TableOfContentsSlide
+        items={[
+          { title: 'Section One' },
+          { title: 'Section Two' },
+          { title: 'Section Three' },
+        ]}
+      />
+    )
+    expect(container.firstChild).toBeTruthy()
+  })
+
+  it('ClosingSlide renders without crashing', () => {
+    const { container } = render(<ClosingSlide />)
+    expect(container.firstChild).toBeTruthy()
+  })
+
+  it('QuoteSlide renders without crashing', () => {
+    const { container } = render(
+      <QuoteSlide
+        quote="The best way to predict the future is to invent it."
+        attribution="Alan Kay"
+      />
+    )
     expect(container.firstChild).toBeTruthy()
   })
 })
