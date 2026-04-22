@@ -27,6 +27,11 @@ import { AgendaSlide } from './agenda/AgendaSlide'
 import { TableOfContentsSlide } from './toc/TableOfContentsSlide'
 import { ClosingSlide } from './closing/ClosingSlide'
 import { QuoteSlide } from './quote/QuoteSlide'
+import { BigNumberSlide } from './bignumber/BigNumberSlide'
+import { TimelineSlide } from './timeline/TimelineSlide'
+import { MatrixSlide } from './matrix/MatrixSlide'
+import { RoadmapSlide } from './roadmap/RoadmapSlide'
+import { ProcessSlide } from './process/ProcessSlide'
 
 beforeAll(() => {
   // @xyflow/react (used by FlowSlide) requires ResizeObserver
@@ -250,6 +255,70 @@ describe('Template smoke tests', () => {
       <QuoteSlide
         quote="The best way to predict the future is to invent it."
         attribution="Alan Kay"
+      />
+    )
+    expect(container.firstChild).toBeTruthy()
+  })
+
+  it('BigNumberSlide renders without crashing', () => {
+    const { container } = render(
+      <BigNumberSlide value="4.2M" label="monthly active users" trend="up" />
+    )
+    expect(container.firstChild).toBeTruthy()
+  })
+
+  it('TimelineSlide renders without crashing', () => {
+    const { container } = render(
+      <TimelineSlide
+        items={[
+          { date: 'Q1 2023', label: 'Launch' },
+          { date: 'Q3 2023', label: 'Growth', highlight: true },
+        ]}
+      />
+    )
+    expect(container.firstChild).toBeTruthy()
+  })
+
+  it('MatrixSlide renders without crashing', () => {
+    const { container } = render(
+      <MatrixSlide
+        xAxis={{ label: 'Impact', lowLabel: 'Low', highLabel: 'High' }}
+        yAxis={{ label: 'Effort', lowLabel: 'Low', highLabel: 'High' }}
+        topLeft={{ title: 'Fill-ins' }}
+        topRight={{ title: 'Big Bets', highlight: true }}
+        bottomLeft={{ title: 'Drop' }}
+        bottomRight={{ title: 'Quick Wins' }}
+      />
+    )
+    expect(container.firstChild).toBeTruthy()
+  })
+
+  it('RoadmapSlide renders without crashing', () => {
+    const { container } = render(
+      <RoadmapSlide
+        phases={['Q1', 'Q2', 'Q3']}
+        rows={[
+          {
+            label: 'Platform',
+            items: [
+              { phase: 0, label: 'Auth', status: 'done' },
+              { phase: 1, label: 'API v2', status: 'in-progress' },
+            ],
+          },
+        ]}
+      />
+    )
+    expect(container.firstChild).toBeTruthy()
+  })
+
+  it('ProcessSlide renders without crashing', () => {
+    const { container } = render(
+      <ProcessSlide
+        steps={[
+          { title: 'Write', description: 'Author code' },
+          { title: 'Review', description: 'Peer review' },
+          { title: 'Ship', description: 'Deploy' },
+        ]}
       />
     )
     expect(container.firstChild).toBeTruthy()

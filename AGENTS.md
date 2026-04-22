@@ -83,6 +83,11 @@ src/
     toc/              TableOfContentsSlide.tsx + example.tsx
     closing/          ClosingSlide.tsx + example.tsx
     quote/            QuoteSlide.tsx + example.tsx
+    bignumber/        BigNumberSlide.tsx + example.tsx
+    timeline/         TimelineSlide.tsx + example.tsx
+    matrix/           MatrixSlide.tsx + example.tsx
+    roadmap/          RoadmapSlide.tsx + example.tsx
+    process/          ProcessSlide.tsx + example.tsx
     common/
       SlideLayout.tsx ← shared root wrapper for content slides
       SlideTitle.tsx  ← HeroTitle, SectionTitle, SubsectionTitle
@@ -729,6 +734,120 @@ Full-bleed centered layout with decorative oversized `"` glyph. Attribution sepa
 
 ---
 
+### `BigNumberSlide`
+**Use for:** A single KPI, statistic, or metric that dominates the slide.
+
+```tsx
+import { BigNumberSlide } from '../../src/templates/bignumber/BigNumberSlide'
+import { SectionTitle } from '../../src/templates/common/SlideTitle'
+
+<BigNumberSlide
+  header={<SectionTitle title="Monthly Active Users" eyebrow="Growth" />}
+  value="4.2M"
+  label="monthly active users"
+  context="Up from 2.8M in the same quarter last year"
+  trend="up"
+/>
+```
+
+`trend`: `'up'` | `'down'` | `'neutral'`. Trend arrow uses `TrendingUp`/`TrendingDown`/`Minus` from Lucide, colored `text-accent` (up), `text-red-400` (down — semantic signal color), `text-muted` (neutral). `context` is an optional italic line below the label.
+
+---
+
+### `TimelineSlide`
+**Use for:** Chronological milestones — product history, project phases.
+
+```tsx
+import { TimelineSlide } from '../../src/templates/timeline/TimelineSlide'
+import { SectionTitle } from '../../src/templates/common/SlideTitle'
+
+<TimelineSlide
+  header={<SectionTitle title="Product Milestones" eyebrow="2022 – 2025" />}
+  direction="horizontal"
+  items={[
+    { date: 'Q1 2022', label: 'Private Beta', description: '200 design partners' },
+    { date: 'Q3 2022', label: 'Public Launch', highlight: true, description: '10k sign-ups in 48h' },
+    { date: 'Q1 2023', label: 'Series A', description: '$12M raised' },
+  ]}
+/>
+```
+
+`direction`: `'horizontal'` (default, alternating above/below spine) | `'vertical'` (left spine, content right). `highlight: true` enlarges the node circle. Dates in mono/accent. Items stagger with `animate-fade-up`.
+
+---
+
+### `MatrixSlide`
+**Use for:** 2×2 strategy/priority matrix (Eisenhower, BCG, etc.).
+
+```tsx
+import { MatrixSlide } from '../../src/templates/matrix/MatrixSlide'
+import { SectionTitle } from '../../src/templates/common/SlideTitle'
+
+<MatrixSlide
+  header={<SectionTitle title="Feature Priority Matrix" eyebrow="Eisenhower" />}
+  xAxis={{ label: 'Impact', lowLabel: 'Low', highLabel: 'High' }}
+  yAxis={{ label: 'Effort', lowLabel: 'Low', highLabel: 'High' }}
+  topLeft={{ title: 'Fill-ins', items: ['A/B test variants'] }}
+  topRight={{ title: 'Big Bets', highlight: true, items: ['Real-time collab'] }}
+  bottomLeft={{ title: 'Drop', items: ['Dark mode'] }}
+  bottomRight={{ title: 'Quick Wins', items: ['Keyboard shortcuts'] }}
+/>
+```
+
+Highlighted quadrant gets `bg-accent/10 border border-accent/30`. Low/high labels at axis corners. `items` are bullet-prefixed with `·`.
+
+---
+
+### `RoadmapSlide`
+**Use for:** Multi-track product roadmap with phases as columns and workstreams as rows.
+
+```tsx
+import { RoadmapSlide } from '../../src/templates/roadmap/RoadmapSlide'
+import { SectionTitle } from '../../src/templates/common/SlideTitle'
+
+<RoadmapSlide
+  header={<SectionTitle title="2025 Product Roadmap" eyebrow="Engineering" />}
+  phases={['Q1', 'Q2', 'Q3', 'Q4']}
+  rows={[
+    {
+      label: 'Platform',
+      items: [
+        { phase: 0, label: 'Auth overhaul', status: 'done' },
+        { phase: 1, label: 'API v2', status: 'in-progress', span: 2 },
+        { phase: 3, label: 'Edge caching', status: 'planned' },
+      ],
+    },
+  ]}
+/>
+```
+
+`status`: `'done'` (accent outline pill) | `'in-progress'` (solid accent fill) | `'planned'` (dim surface). `span` extends an item across multiple phase columns. Rows stagger with `animate-fade-up`.
+
+---
+
+### `ProcessSlide`
+**Use for:** Linear step-by-step sequence — simpler and more opinionated than `FlowSlide`.
+
+```tsx
+import { ProcessSlide } from '../../src/templates/process/ProcessSlide'
+import { SectionTitle } from '../../src/templates/common/SlideTitle'
+
+<ProcessSlide
+  header={<SectionTitle title="Deployment Pipeline" eyebrow="Engineering" />}
+  direction="horizontal"
+  steps={[
+    { title: 'Write', description: 'Author code & tests' },
+    { title: 'Review', description: 'Peer review & CI' },
+    { title: 'Stage', description: 'Deploy to staging' },
+    { title: 'Release', description: 'Canary → production' },
+  ]}
+/>
+```
+
+`direction`: `'horizontal'` (default, best for 3–5 steps, `ChevronRight` connectors) | `'vertical'` (best for 4–6 steps, spine connector). Numbered circle badge (44px, mono/accent). Steps stagger with `animate-fade-up`.
+
+---
+
 ## Template Decision Guide
 
 | Content type | Template |
@@ -755,6 +874,11 @@ Full-bleed centered layout with decorative oversized `"` glyph. Attribution sepa
 | Vertically stacked tech layers | `StackSlide` |
 | Embed live web content / demo | `EmbedSlide` |
 | Single pull quote with attribution | `QuoteSlide` |
+| Single KPI or metric | `BigNumberSlide` |
+| Chronological milestones | `TimelineSlide` |
+| 2×2 strategy/priority matrix | `MatrixSlide` |
+| Multi-track product roadmap | `RoadmapSlide` |
+| Linear step-by-step sequence | `ProcessSlide` |
 | Final thank-you / CTA / contact | `ClosingSlide` |
 | Closing / conclusion | `TheEndSlide` |
 
