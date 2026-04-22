@@ -35,26 +35,10 @@ export function TestimonialSlide({ quote, author, role, company, avatarUrl, rati
         }}
       />
 
-      {/* Decorative quote glyph */}
-      <div
-        className="absolute font-display font-bold text-accent select-none pointer-events-none"
-        style={{
-          fontSize: '480px',
-          lineHeight: 1,
-          opacity: 0.04,
-          top: '-60px',
-          left: '40px',
-          letterSpacing: '-0.05em',
-        }}
-        aria-hidden="true"
-      >
-        &ldquo;
-      </div>
-
       {/* Content card */}
       <div
-        className="relative z-10 bg-surface rounded-2xl flex flex-col animate-fade-up"
-        style={{ maxWidth: '760px', width: '100%', padding: '48px' }}
+        className="relative z-10 bg-surface rounded-2xl p-12 flex flex-col animate-fade-up"
+        style={{ maxWidth: '760px', width: '100%' }}
       >
         {/* Star rating */}
         {clampedRating !== undefined && (
@@ -69,16 +53,25 @@ export function TestimonialSlide({ quote, author, role, company, avatarUrl, rati
           </div>
         )}
 
+        {/* Decorative open-quote accent */}
+        <div
+          className="font-display font-bold text-accent select-none leading-none mb-2"
+          style={{ fontSize: '72px', opacity: 0.6, lineHeight: 0.8 }}
+          aria-hidden="true"
+        >
+          &ldquo;
+        </div>
+
         {/* Quote text */}
         <blockquote
           className="font-body italic text-slide-text leading-relaxed"
           style={{ fontSize: '24px' }}
         >
-          &ldquo;{quote}&rdquo;
+          {quote}
         </blockquote>
 
         {/* Separator */}
-        <div className="bg-surface border-t border-surface/60 my-8" style={{ height: '1px' }} />
+        <div className="border-t border-white/10 my-8" />
 
         {/* Author row */}
         <div className="flex items-center gap-4">

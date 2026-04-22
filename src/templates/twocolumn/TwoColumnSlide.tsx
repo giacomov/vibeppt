@@ -62,9 +62,6 @@ export function TwoColumnSlide({ header, left, right, ratio = '50/50' }: TwoColu
           <ColumnItems items={left.items} />
         </div>
 
-        {/* Vertical divider */}
-        {showDivider && <div className="absolute" />}
-
         {/* Right column */}
         <div className={`${showDivider ? 'pl-10 border-l border-surface' : 'pl-8'}`}>
           {right.title && (
