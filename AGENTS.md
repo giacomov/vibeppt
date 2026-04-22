@@ -88,6 +88,11 @@ src/
     matrix/           MatrixSlide.tsx + example.tsx
     roadmap/          RoadmapSlide.tsx + example.tsx
     process/          ProcessSlide.tsx + example.tsx
+    twocolumn/        TwoColumnSlide.tsx + example.tsx
+    problemsolution/  ProblemSolutionSlide.tsx + example.tsx
+    team/             TeamSlide.tsx + example.tsx
+    testimonial/      TestimonialSlide.tsx + example.tsx
+    icongrid/         IconGridSlide.tsx + example.tsx
     common/
       SlideLayout.tsx ← shared root wrapper for content slides
       SlideTitle.tsx  ← HeroTitle, SectionTitle, SubsectionTitle
@@ -848,6 +853,116 @@ import { SectionTitle } from '../../src/templates/common/SlideTitle'
 
 ---
 
+### `TwoColumnSlide`
+**Use for:** Two structured columns with optional titles and list content — more semantic than `SplitSlide`.
+
+```tsx
+import { TwoColumnSlide } from '../../src/templates/twocolumn/TwoColumnSlide'
+import { SectionTitle } from '../../src/templates/common/SlideTitle'
+
+<TwoColumnSlide
+  header={<SectionTitle title="Architecture Comparison" eyebrow="Engineering" />}
+  ratio="50/50"
+  left={{
+    title: 'Monolith',
+    items: ['Single deployable unit', 'Shared database', 'Simple local development'],
+  }}
+  right={{
+    title: 'Microservices',
+    items: ['Independent deployments', 'Service-owned data stores', 'Fine-grained scaling'],
+  }}
+/>
+```
+
+`ratio`: `'50/50'` (default, with vertical divider) | `'40/60'` | `'60/40'`. Column `title` renders with an accent underline bar. String `items` render numbered like `BulletSlide` rows. ReactNode `items` rendered as-is.
+
+---
+
+### `ProblemSolutionSlide`
+**Use for:** Side-by-side Problem vs. Solution framing.
+
+```tsx
+import { ProblemSolutionSlide } from '../../src/templates/problemsolution/ProblemSolutionSlide'
+import { SectionTitle } from '../../src/templates/common/SlideTitle'
+
+<ProblemSolutionSlide
+  header={<SectionTitle title="Why We're Rebuilding Search" />}
+  problem={{
+    points: ['Results take 4+ seconds', 'Exact match only', 'Zero personalization'],
+  }}
+  solution={{
+    points: ['Sub-200ms via edge cache', 'Vector embeddings', 'Session-aware ranking'],
+  }}
+/>
+```
+
+Problem items: muted badge header, `X` icon, muted text. Solution items: accent badge header, `Check` icon, slide-text. Optional `label` per pane overrides "Problem" / "Solution". Items stagger with `animate-fade-up`.
+
+---
+
+### `TeamSlide`
+**Use for:** Team roster with names, roles, optional photos (2–8 members).
+
+```tsx
+import { TeamSlide } from '../../src/templates/team/TeamSlide'
+import { SectionTitle } from '../../src/templates/common/SlideTitle'
+
+<TeamSlide
+  header={<SectionTitle title="The Team" eyebrow="Who We Are" />}
+  members={[
+    { name: 'Ada Lovelace', role: 'CEO & Co-founder', linkedIn: 'https://linkedin.com/in/ada-lovelace' },
+    { name: 'Alan Turing', role: 'CTO & Co-founder' },
+    { name: 'Grace Hopper', role: 'VP Engineering' },
+  ]}
+/>
+```
+
+`columns`: `2` | `3` | `4` (default: auto-detected from member count). Each card: 72px avatar circle (photo or initials fallback), name in display font, role in muted, optional LinkedIn link. Cards stagger with `animate-fade-up`.
+
+---
+
+### `TestimonialSlide`
+**Use for:** Customer testimonial with attribution — more structured than `QuoteSlide`.
+
+```tsx
+import { TestimonialSlide } from '../../src/templates/testimonial/TestimonialSlide'
+
+<TestimonialSlide
+  quote="Shipping time dropped by 60% in the first month."
+  author="Sarah Chen"
+  role="VP Engineering"
+  company="Acme Corp"
+  rating={5}
+/>
+```
+
+Full-bleed centered layout with radial vignette and decorative `"` glyph. Content card (`bg-surface rounded-2xl`). Optional `rating` (1–5 filled stars). Author row: avatar (48px, photo or initials), name + role/company. No `header` prop. `avatarUrl` optional.
+
+---
+
+### `IconGridSlide`
+**Use for:** Visual grid of concepts/features, each with a Lucide icon, label, and optional description (3–8 items).
+
+```tsx
+import { IconGridSlide } from '../../src/templates/icongrid/IconGridSlide'
+import { SectionTitle } from '../../src/templates/common/SlideTitle'
+import { Cpu, Shield, Zap } from 'lucide-react'
+
+<IconGridSlide
+  header={<SectionTitle title="Platform Capabilities" eyebrow="Features" />}
+  columns={3}
+  items={[
+    { icon: <Cpu size={22} />, label: 'AI-Powered', description: 'Inference at the edge, sub-50ms globally' },
+    { icon: <Shield size={22} />, label: 'SOC 2 Type II', description: 'Audited annually, zero breaches' },
+    { icon: <Zap size={22} />, label: 'Instant Deploy', description: 'Push to production in under 30 seconds' },
+  ]}
+/>
+```
+
+`columns`: `2` | `3` (default) | `4`. Each cell: 44px `bg-accent/10 rounded-lg` icon wrapper, label in display font bold, optional description in muted. Cells stagger with `animate-fade-up` (70ms per item).
+
+---
+
 ## Template Decision Guide
 
 | Content type | Template |
@@ -879,6 +994,11 @@ import { SectionTitle } from '../../src/templates/common/SlideTitle'
 | 2×2 strategy/priority matrix | `MatrixSlide` |
 | Multi-track product roadmap | `RoadmapSlide` |
 | Linear step-by-step sequence | `ProcessSlide` |
+| Two structured columns with list content | `TwoColumnSlide` |
+| Problem vs. Solution framing | `ProblemSolutionSlide` |
+| Team roster (2–8 members) | `TeamSlide` |
+| Customer testimonial with attribution | `TestimonialSlide` |
+| Icon grid of features/concepts | `IconGridSlide` |
 | Final thank-you / CTA / contact | `ClosingSlide` |
 | Closing / conclusion | `TheEndSlide` |
 

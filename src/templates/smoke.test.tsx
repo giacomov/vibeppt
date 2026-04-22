@@ -32,6 +32,12 @@ import { TimelineSlide } from './timeline/TimelineSlide'
 import { MatrixSlide } from './matrix/MatrixSlide'
 import { RoadmapSlide } from './roadmap/RoadmapSlide'
 import { ProcessSlide } from './process/ProcessSlide'
+import { TwoColumnSlide } from './twocolumn/TwoColumnSlide'
+import { ProblemSolutionSlide } from './problemsolution/ProblemSolutionSlide'
+import { TeamSlide } from './team/TeamSlide'
+import { TestimonialSlide } from './testimonial/TestimonialSlide'
+import { IconGridSlide } from './icongrid/IconGridSlide'
+import { Cpu, Shield } from 'lucide-react'
 
 beforeAll(() => {
   // @xyflow/react (used by FlowSlide) requires ResizeObserver
@@ -318,6 +324,62 @@ describe('Template smoke tests', () => {
           { title: 'Write', description: 'Author code' },
           { title: 'Review', description: 'Peer review' },
           { title: 'Ship', description: 'Deploy' },
+        ]}
+      />
+    )
+    expect(container.firstChild).toBeTruthy()
+  })
+
+  it('TwoColumnSlide renders without crashing', () => {
+    const { container } = render(
+      <TwoColumnSlide
+        left={{ title: 'Left', items: ['Item A', 'Item B'] }}
+        right={{ title: 'Right', items: ['Item C', 'Item D'] }}
+      />
+    )
+    expect(container.firstChild).toBeTruthy()
+  })
+
+  it('ProblemSolutionSlide renders without crashing', () => {
+    const { container } = render(
+      <ProblemSolutionSlide
+        problem={{ points: ['Too slow', 'No search'] }}
+        solution={{ points: ['Edge cache', 'Vector search'] }}
+      />
+    )
+    expect(container.firstChild).toBeTruthy()
+  })
+
+  it('TeamSlide renders without crashing', () => {
+    const { container } = render(
+      <TeamSlide
+        members={[
+          { name: 'Ada Lovelace', role: 'CEO' },
+          { name: 'Alan Turing', role: 'CTO' },
+        ]}
+      />
+    )
+    expect(container.firstChild).toBeTruthy()
+  })
+
+  it('TestimonialSlide renders without crashing', () => {
+    const { container } = render(
+      <TestimonialSlide
+        quote="Best product I've ever used."
+        author="Jane Doe"
+        role="VP Engineering"
+        rating={5}
+      />
+    )
+    expect(container.firstChild).toBeTruthy()
+  })
+
+  it('IconGridSlide renders without crashing', () => {
+    const { container } = render(
+      <IconGridSlide
+        items={[
+          { icon: <Cpu size={22} />, label: 'AI-Powered', description: 'Fast inference' },
+          { icon: <Shield size={22} />, label: 'Secure', description: 'SOC 2' },
         ]}
       />
     )

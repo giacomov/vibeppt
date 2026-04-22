@@ -24,7 +24,7 @@ describe('ClosingSlide', () => {
   })
 
   it('word-level spans carry aria-hidden so animated chars are hidden from screen readers', () => {
-    const { container } = render(<ClosingSlide headline="Thank You" />)
+    render(<ClosingSlide headline="Thank You" />)
     const h1 = screen.getByLabelText('Thank You')
     const wordSpans = Array.from(h1.children)
     expect(wordSpans.length).toBe(2)
