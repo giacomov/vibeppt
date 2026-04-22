@@ -113,15 +113,17 @@ export function ClosingSlide({
           </p>
         )}
 
-        {/* Contact info */}
+        {/* Contact info — rendered below a separator */}
         {hasContact && (
           <div
-            className="flex items-center gap-8 animate-fade-up"
+            className="animate-fade-up"
             style={{
               marginTop: subtitle ? '32px' : '28px',
               animationDelay: `${contactDelay}ms`,
             }}
           >
+            <div className="w-full h-px bg-surface" style={{ marginBottom: '20px' }} />
+          <div className="flex items-center gap-8">
             {contact!.email && (
               <a
                 href={`mailto:${contact!.email}`}
@@ -144,6 +146,7 @@ export function ClosingSlide({
                 {contact!.linkedIn}
               </span>
             )}
+          </div>
           </div>
         )}
       </div>

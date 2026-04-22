@@ -33,8 +33,8 @@ export function TableOfContentsSlide({
               animationDelay: `${i * 80}ms`,
             }}
           >
-            {/* Number + optional icon */}
-            <div className="flex items-center justify-between">
+            {/* Number + optional icon — both top-left */}
+            <div className="flex items-center gap-2">
               <span
                 className="font-mono text-accent"
                 style={{ fontSize: '12px', letterSpacing: '0.18em', opacity: 0.8 }}
