@@ -29,7 +29,7 @@ export function SectionDividerSlideWithColor(): ReactNode {
     <SectionDividerSlide
       eyebrow="Section 1"
       title="Why It Matters"
-      backgroundColor="#1a0a2e"
+      backgroundColor="rgb(var(--color-surface))"
       overlayOpacity={0.4}
     />
   )

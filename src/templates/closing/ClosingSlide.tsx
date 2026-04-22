@@ -21,8 +21,12 @@ export function ClosingSlide({
   cta,
   contact,
 }: ClosingSlideProps): ReactNode {
-  const lastIdx = headline.replace(/ /g, '').length - 1
-  const lineDelay = lastIdx * 90 + 500
+  // Compute the animation index of the last character using the same charOffset
+  // formula as the render loop: each inter-word space counts as +1 in the index.
+  const words = headline.split(' ')
+  const lastWordOffset = words.slice(0, -1).reduce((acc, w) => acc + w.length + 1, 0)
+  const lastCharIdx = lastWordOffset + words[words.length - 1].length - 1
+  const lineDelay = lastCharIdx * 90 + 500
   const subtitleDelay = lineDelay + 300
   const contactDelay = subtitleDelay + 200
 
@@ -59,12 +63,17 @@ export function ClosingSlide({
           style={{ fontSize: '96px', lineHeight: 1, letterSpacing: '-0.03em' }}
           aria-label={headline}
         >
-          {headline.split(' ').map((word, wordIdx, words) => {
+          {words.map((word, wordIdx) => {
             const charOffset = words
               .slice(0, wordIdx)
               .reduce((acc, w) => acc + w.length + 1, 0)
             return (
-              <span key={wordIdx} className="flex items-end" style={{ marginRight: wordIdx < words.length - 1 ? '0.28em' : 0 }}>
+              <span
+                key={wordIdx}
+                className="flex items-end"
+                style={{ marginRight: wordIdx < words.length - 1 ? '0.28em' : 0 }}
+                aria-hidden
+              >
                 {word.split('').map((char, charIdx) => {
                   const idx = charOffset + charIdx
                   return (
@@ -74,7 +83,6 @@ export function ClosingSlide({
                         display: 'inline-block',
                         animation: `letter-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) ${idx * 90}ms both`,
                       }}
-                      aria-hidden
                     >
                       {char}
                     </span>
@@ -123,30 +131,30 @@ export function ClosingSlide({
             }}
           >
             <div className="w-full h-px bg-surface" style={{ marginBottom: '20px' }} />
-          <div className="flex items-center gap-8">
-            {contact!.email && (
-              <a
-                href={`mailto:${contact!.email}`}
-                className="flex items-center gap-2 font-mono text-muted"
-                style={{ fontSize: '13px', letterSpacing: '0.04em', textDecoration: 'none' }}
-              >
-                <Mail size={14} className="text-accent" />
-                {contact!.email}
-              </a>
-            )}
-            {contact!.website && (
-              <span className="flex items-center gap-2 font-mono text-muted" style={{ fontSize: '13px', letterSpacing: '0.04em' }}>
-                <Globe size={14} className="text-accent" />
-                {contact!.website}
-              </span>
-            )}
-            {contact!.linkedIn && (
-              <span className="flex items-center gap-2 font-mono text-muted" style={{ fontSize: '13px', letterSpacing: '0.04em' }}>
-                <Linkedin size={14} className="text-accent" />
-                {contact!.linkedIn}
-              </span>
-            )}
-          </div>
+            <div className="flex items-center gap-8">
+              {contact?.email && (
+                <a
+                  href={`mailto:${contact.email}`}
+                  className="flex items-center gap-2 font-mono text-muted"
+                  style={{ fontSize: '13px', letterSpacing: '0.04em', textDecoration: 'none' }}
+                >
+                  <Mail size={14} className="text-accent" />
+                  {contact.email}
+                </a>
+              )}
+              {contact?.website && (
+                <span className="flex items-center gap-2 font-mono text-muted" style={{ fontSize: '13px', letterSpacing: '0.04em' }}>
+                  <Globe size={14} className="text-accent" />
+                  {contact.website}
+                </span>
+              )}
+              {contact?.linkedIn && (
+                <span className="flex items-center gap-2 font-mono text-muted" style={{ fontSize: '13px', letterSpacing: '0.04em' }}>
+                  <Linkedin size={14} className="text-accent" />
+                  {contact.linkedIn}
+                </span>
+              )}
+            </div>
           </div>
         )}
       </div>
