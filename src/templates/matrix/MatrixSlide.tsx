@@ -58,13 +58,14 @@ export function MatrixSlide({
   return (
     <SlideLayout header={header}>
       <div className="flex flex-1 min-h-0 gap-3">
-        {/* Y-axis label column */}
+        {/* Y-axis label column — always render all three slots so the center label stays centered */}
         <div className="flex flex-col items-center justify-between" style={{ width: '28px', flexShrink: 0 }}>
-          {yAxis.highLabel && (
-            <span className="font-mono text-muted" style={{ fontSize: '11px', letterSpacing: '0.08em' }}>
-              {yAxis.highLabel}
-            </span>
-          )}
+          <span
+            className="font-mono text-muted"
+            style={{ fontSize: '11px', letterSpacing: '0.08em', visibility: yAxis.highLabel ? 'visible' : 'hidden' }}
+          >
+            {yAxis.highLabel ?? ''}
+          </span>
           <span
             className="font-mono text-muted"
             style={{
@@ -77,11 +78,12 @@ export function MatrixSlide({
           >
             {yAxis.label}
           </span>
-          {yAxis.lowLabel && (
-            <span className="font-mono text-muted" style={{ fontSize: '11px', letterSpacing: '0.08em' }}>
-              {yAxis.lowLabel}
-            </span>
-          )}
+          <span
+            className="font-mono text-muted"
+            style={{ fontSize: '11px', letterSpacing: '0.08em', visibility: yAxis.lowLabel ? 'visible' : 'hidden' }}
+          >
+            {yAxis.lowLabel ?? ''}
+          </span>
         </div>
 
         {/* Matrix + X-axis */}
