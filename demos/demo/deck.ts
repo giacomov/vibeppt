@@ -20,10 +20,18 @@ import TemperatureDemo from './temperature'
 import CycleDemo from './cycle'
 import KeyTakeawayDemo from './keytakeaway'
 import SectionTitleDemo from './sectiontitle'
+import QuoteDemo from './quote'
+import BigNumberDemo from './bignumber'
+import ClosingDemo from './closing'
+import SectionDividerDemo from './sectiondivider'
+import AgendaDemo from './agenda'
+import TocDemo from './toc'
+import IconGridDemo from './icongrid'
+import ProcessDemo from './process'
 import TheEndDemo from './theend'
 
 export const deck: Deck = {
   title: 'VibePPT',
   theme: { accent: '#6EE7B7' },
-  slides: [Title, HowItWorks, Templates, Theming, DeckContract, GetStarted, SplitFlap, Flow, ImageDemo, ChartDemo, CardsDemo, CompareDemo, EmbedDemo, PrismDemo, StackDemo, GlossaryDemo, HeatmapDemo, TemperatureDemo, CycleDemo, KeyTakeawayDemo, SectionTitleDemo, TheEndDemo],
+  slides: [Title, HowItWorks, Templates, Theming, DeckContract, GetStarted, SplitFlap, Flow, ImageDemo, ChartDemo, CardsDemo, CompareDemo, EmbedDemo, PrismDemo, StackDemo, GlossaryDemo, HeatmapDemo, TemperatureDemo, CycleDemo, KeyTakeawayDemo, SectionTitleDemo, QuoteDemo, BigNumberDemo, ClosingDemo, SectionDividerDemo, AgendaDemo, TocDemo, IconGridDemo, ProcessDemo, TheEndDemo],
 }
