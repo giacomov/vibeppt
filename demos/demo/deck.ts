@@ -28,10 +28,17 @@ import AgendaDemo from './agenda'
 import TocDemo from './toc'
 import IconGridDemo from './icongrid'
 import ProcessDemo from './process'
+import TimelineDemo from './timeline'
+import MatrixDemo from './matrix'
+import RoadmapDemo from './roadmap'
+import TwoColumnDemo from './twocolumn'
+import ProblemSolutionDemo from './problemsolution'
+import TeamDemo from './team'
+import TestimonialDemo from './testimonial'
 import TheEndDemo from './theend'
 
 export const deck: Deck = {
   title: 'VibePPT',
   theme: { accent: '#6EE7B7' },
-  slides: [Title, HowItWorks, Templates, Theming, DeckContract, GetStarted, SplitFlap, Flow, ImageDemo, ChartDemo, CardsDemo, CompareDemo, EmbedDemo, PrismDemo, StackDemo, GlossaryDemo, HeatmapDemo, TemperatureDemo, CycleDemo, KeyTakeawayDemo, SectionTitleDemo, QuoteDemo, BigNumberDemo, ClosingDemo, SectionDividerDemo, AgendaDemo, TocDemo, IconGridDemo, ProcessDemo, TheEndDemo],
+  slides: [Title, HowItWorks, Templates, Theming, DeckContract, GetStarted, SplitFlap, Flow, ImageDemo, ChartDemo, CardsDemo, CompareDemo, EmbedDemo, PrismDemo, StackDemo, GlossaryDemo, HeatmapDemo, TemperatureDemo, CycleDemo, KeyTakeawayDemo, SectionTitleDemo, QuoteDemo, BigNumberDemo, ClosingDemo, SectionDividerDemo, AgendaDemo, TocDemo, IconGridDemo, ProcessDemo, TimelineDemo, MatrixDemo, RoadmapDemo, TwoColumnDemo, ProblemSolutionDemo, TeamDemo, TestimonialDemo, TheEndDemo],
 }
