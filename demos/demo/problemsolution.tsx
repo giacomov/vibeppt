@@ -9,7 +9,7 @@ const ProblemSolutionDemo = (): ReactNode => (
     problem={{
       points: [
         'Results take 4+ seconds to load',
-        'Exact match only — no semantic understanding',
+        'No semantic understanding — exact match only',
         'Zero personalization across sessions',
       ],
     }}

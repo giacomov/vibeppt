@@ -12,7 +12,7 @@ const TimelineDemo = (): ReactNode => (
       { date: 'Q3 2022', label: 'Public Launch', highlight: true, description: '10k sign-ups in 48h' },
       { date: 'Q1 2023', label: 'Series A', description: '$12M raised' },
       { date: 'Q4 2023', label: 'Mobile App', description: 'iOS & Android' },
-      { date: 'Q2 2025', label: 'Enterprise GA', description: '500 paying customers' },
+      { date: 'Q2 2025', label: 'Enterprise GA', highlight: true, description: '500 paying customers' },
     ]}
   />
 )
