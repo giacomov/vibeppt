@@ -39,6 +39,5 @@ import TheEndDemo from './theend'
 
 export const deck: Deck = {
   title: 'VibePPT',
-  theme: { accent: '#6EE7B7' },
   slides: [Title, HowItWorks, Templates, Theming, DeckContract, GetStarted, SplitFlap, Flow, ImageDemo, ChartDemo, CardsDemo, CompareDemo, EmbedDemo, PrismDemo, StackDemo, GlossaryDemo, HeatmapDemo, TemperatureDemo, CycleDemo, KeyTakeawayDemo, SectionTitleDemo, QuoteDemo, BigNumberDemo, ClosingDemo, SectionDividerDemo, AgendaDemo, TocDemo, IconGridDemo, ProcessDemo, TimelineDemo, MatrixDemo, RoadmapDemo, TwoColumnDemo, ProblemSolutionDemo, TeamDemo, TestimonialDemo, TheEndDemo],
 }

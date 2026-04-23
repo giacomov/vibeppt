@@ -63,8 +63,13 @@ export function SectionDividerSlide({
 
         {/* Title — static (no animation) */}
         <h2
-          className="font-display font-bold text-slide-text"
-          style={{ fontSize: '72px', lineHeight: 1.05, letterSpacing: '-0.02em' }}
+          className="font-display font-bold"
+          style={{
+            fontSize: '72px',
+            lineHeight: 1.05,
+            letterSpacing: '-0.02em',
+            color: hasCustomBg ? 'rgba(245,245,245,0.95)' : undefined,
+          }}
         >
           {title}
         </h2>
@@ -74,8 +79,12 @@ export function SectionDividerSlide({
           <>
             <div className="w-14 h-0.5 bg-accent" style={{ marginTop: '32px', marginBottom: '24px' }} />
             <p
-              className="font-body text-muted font-light leading-relaxed animate-subtitle-rise"
-              style={{ fontSize: '22px', maxWidth: '620px' }}
+              className="font-body font-light leading-relaxed animate-subtitle-rise"
+              style={{
+                fontSize: '22px',
+                maxWidth: '620px',
+                color: hasCustomBg ? 'rgba(245,245,245,0.65)' : undefined,
+              }}
             >
               {subtitle}
             </p>

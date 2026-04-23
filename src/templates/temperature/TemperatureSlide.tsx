@@ -35,8 +35,8 @@ export function TemperatureSlide({
   leftLabel,
   rightLabel,
   points,
-  coldColor = 'rgba(100,160,220,0.6)',
-  warmColor = 'rgba(220,120,80,0.65)',
+  coldColor = 'rgba(107,143,166,0.75)',
+  warmColor = 'rgba(184,122,90,0.80)',
 }: TemperatureSlideProps): ReactNode {
   const [active, setActive] = useState(false)
 
@@ -79,13 +79,13 @@ export function TemperatureSlide({
         <div className="flex justify-between" style={{ marginBottom: '10px', padding: '0 4px' }}>
           <span
             className="font-mono font-bold uppercase"
-            style={{ fontSize: '12px', letterSpacing: '0.14em', color: 'rgba(130,175,220,0.85)' }}
+            style={{ fontSize: '12px', letterSpacing: '0.14em', color: 'rgba(107,143,166,0.90)' }}
           >
             {leftLabel}
           </span>
           <span
             className="font-mono font-bold uppercase"
-            style={{ fontSize: '12px', letterSpacing: '0.14em', color: 'rgba(220,140,90,0.85)' }}
+            style={{ fontSize: '12px', letterSpacing: '0.14em', color: 'rgba(184,122,90,0.90)' }}
           >
             {rightLabel}
           </span>
@@ -98,7 +98,7 @@ export function TemperatureSlide({
             height: '12px',
             borderRadius: '9999px',
             background: `linear-gradient(90deg, ${coldColor}, rgba(180,160,110,0.5) 50%, ${warmColor})`,
-            border: '1px solid rgba(255,255,255,0.08)',
+            border: '1px solid rgb(var(--color-text) / 0.10)',
           }}
         >
           {/* Markers */}
@@ -162,7 +162,7 @@ export function TemperatureSlide({
                   style={{
                     padding: '12px 16px',
                     marginTop: '6px',
-                    border: '1px solid rgba(255,255,255,0.06)',
+                    border: '1px solid rgb(var(--color-text) / 0.08)',
                     textAlign: 'center',
                   }}
                 >

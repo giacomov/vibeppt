@@ -162,30 +162,29 @@ export function PrismSlide({
         >
           <defs>
             <radialGradient id="src-glow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%"   stopColor="rgba(255,255,255,0.18)" />
-              <stop offset="100%" stopColor="rgba(255,255,255,0.03)" />
+              <stop offset="0%"   stopColor="rgba(128,128,128,0.12)" />
+              <stop offset="100%" stopColor="rgba(128,128,128,0)" />
             </radialGradient>
           </defs>
 
           {/* ── Transparent glass prism ──────────────────────────────────── */}
-          {/* Very subtle fill so it reads as glass; edges define the shape */}
           <polygon
             points={`${P_APEX[0]},${P_APEX[1]} ${P_BL[0]},${P_BL[1]} ${P_BR[0]},${P_BR[1]}`}
-            fill="rgba(200,220,255,0.07)"
-            stroke="rgba(255,255,255,0.28)"
+            style={{ fill: 'rgb(var(--color-text) / 0.04)', stroke: 'rgb(var(--color-text) / 0.20)' }}
             strokeWidth="1.5"
             strokeLinejoin="round"
           />
           {/* Subtle inner highlight on the left (entry) face */}
           <line
             x1={P_APEX[0]} y1={P_APEX[1]} x2={P_BL[0]} y2={P_BL[1]}
-            stroke="rgba(255,255,255,0.15)" strokeWidth="2.5" strokeLinecap="round"
+            style={{ stroke: 'rgb(var(--color-text) / 0.12)' }} strokeWidth="2.5" strokeLinecap="round"
           />
 
           {/* ── Source bubble ────────────────────────────────────────────── */}
           <circle
             cx={SRC_CX} cy={SRC_CY} r={SRC_R}
-            fill="url(#src-glow)" stroke="rgba(255,255,255,0.18)" strokeWidth="1.5"
+            fill="url(#src-glow)"
+            style={{ stroke: 'rgb(var(--color-text) / 0.18)' }} strokeWidth="1.5"
           />
           {subjectIcon ? (
             typeof subjectIcon === 'string' ? (
@@ -193,35 +192,37 @@ export function PrismSlide({
                 x={SRC_CX} y={SRC_CY}
                 textAnchor="middle" dominantBaseline="central"
                 fontSize="26" fontFamily="var(--font-body)"
+                style={{ fill: 'rgb(var(--color-text))' }}
               >
                 {subjectIcon}
               </text>
             ) : (
               <foreignObject x={SRC_CX - 18} y={SRC_CY - 18} width={36} height={36}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', color: 'rgba(255,255,255,0.9)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', color: 'rgb(var(--color-text))' }}>
                   {subjectIcon}
                 </div>
               </foreignObject>
             )
           ) : (
-            <circle cx={SRC_CX} cy={SRC_CY} r={7} fill="rgba(255,255,255,0.45)" />
+            <circle cx={SRC_CX} cy={SRC_CY} r={7} style={{ fill: 'rgb(var(--color-text) / 0.35)' }} />
           )}
           <text
             x={SRC_CX} y={SRC_CY - SRC_R - 18}
             textAnchor="middle"
-            fill="rgba(255,255,255,0.82)"
             fontSize="17" fontWeight="500"
             fontFamily="var(--font-body)"
+            style={{ fill: 'rgb(var(--color-text))' }}
           >
             {subject}
           </text>
 
-          {/* ── Incoming white ray (source → left face entry point) ───────── */}
+          {/* ── Incoming ray (source → left face entry point) ────────────── */}
           <line
             x1={SRC_CX + SRC_R} y1={ENTRY_Y}
             x2={ENTRY_X}         y2={ENTRY_Y}
-            stroke="rgba(255,255,255,0.80)" strokeWidth="2.5" strokeLinecap="round"
+            strokeWidth="2.5" strokeLinecap="round"
             style={{
+              stroke: 'rgb(var(--color-accent) / 0.70)',
               strokeDasharray: incLen,
               strokeDashoffset: active ? 0 : incLen,
               transition: `stroke-dashoffset ${INC_DURATION}ms cubic-bezier(0.4,0,0.2,1) ${INC_DELAY}ms`,
@@ -299,11 +300,11 @@ export function PrismSlide({
               <text
                 x={ray.pos.cx + iR + 18}
                 y={items[i].description ? ray.pos.cy - 11 : ray.pos.cy}
-                fill="rgba(255,255,255,0.92)"
                 fontSize={n > 6 ? 17 : 21}
                 fontWeight="600"
                 fontFamily="var(--font-body)"
                 dominantBaseline="central"
+                style={{ fill: 'rgb(var(--color-text))' }}
               >
                 {items[i].label}
               </text>
@@ -312,10 +313,10 @@ export function PrismSlide({
                 <text
                   x={ray.pos.cx + iR + 18}
                   y={ray.pos.cy + 14}
-                  fill="rgba(255,255,255,0.42)"
                   fontSize="15"
                   fontFamily="var(--font-body)"
                   dominantBaseline="central"
+                  style={{ fill: 'rgb(var(--color-muted))' }}
                 >
                   {items[i].description}
                 </text>

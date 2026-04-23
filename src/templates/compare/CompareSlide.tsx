@@ -125,7 +125,7 @@ function TugRow({
         {/* Base track */}
         <div
           className="absolute inset-0 rounded-full"
-          style={{ background: 'rgba(255,255,255,0.07)' }}
+          style={{ background: 'rgb(var(--color-text) / 0.06)' }}
         />
 
         {/* Center divider */}
@@ -137,7 +137,7 @@ function TugRow({
             width: '1px',
             height: '20px',
             transform: 'translate(-50%, -50%)',
-            background: 'rgba(255,255,255,0.15)',
+            background: 'rgb(var(--color-text) / 0.12)',
           }}
         />
 
@@ -147,7 +147,7 @@ function TugRow({
           style={{
             left: winner === 'left' ? 0 : `${pos}%`,
             right: winner === 'right' ? 0 : `${100 - pos}%`,
-            background: 'rgba(110, 231, 183, 0.18)',
+            background: 'rgb(var(--color-accent) / 0.15)',
             opacity: settled ? 1 : 0,
             transition: 'opacity 0.6s ease',
           }}
@@ -166,8 +166,8 @@ function TugRow({
               ? 'left 0.9s cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow 0.5s ease'
               : 'box-shadow 0.5s ease',
             boxShadow: settled
-              ? '0 0 22px rgba(110, 231, 183, 0.85)'
-              : '0 0 6px rgba(110, 231, 183, 0.25)',
+              ? '0 0 22px rgb(var(--color-accent) / 0.85)'
+              : '0 0 6px rgb(var(--color-accent) / 0.25)',
           }}
         />
       </div>

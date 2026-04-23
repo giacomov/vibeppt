@@ -79,6 +79,7 @@ export function CardSlide({
                   style={{
                     padding: '1.25rem 1rem',
                     background: CARD_FACE_BG,
+                    color: CARD_TEXT_DARK,
                     borderRadius: '10px',
                     border: `2px solid ${CARD_BORDER_COLOR}`,
                     boxShadow:

@@ -53,9 +53,9 @@ function ZoomControls({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 4,
-    border: '1px solid rgba(255,255,255,0.1)',
-    background: 'rgba(255,255,255,0.05)',
-    color: 'rgba(255,255,255,0.55)',
+    border: '1px solid rgb(var(--color-text) / 0.12)',
+    background: 'rgb(var(--color-text) / 0.06)',
+    color: 'rgb(var(--color-text) / 0.50)',
     fontSize: 14,
     lineHeight: 1,
     userSelect: 'none',
@@ -77,7 +77,7 @@ function ZoomControls({
       </button>
       <span
         className="font-mono"
-        style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', width: 34, textAlign: 'center' }}
+        style={{ fontSize: '11px', color: 'rgb(var(--color-text) / 0.40)', width: 34, textAlign: 'center' }}
       >
         {Math.round(zoom * 100)}%
       </span>
@@ -159,15 +159,15 @@ export function EmbedSlide({
         className="flex-1 flex flex-col min-h-0 rounded-xl overflow-hidden"
         style={{
           boxShadow:
-            '0 0 0 1px rgba(255,255,255,0.08), 0 8px 48px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.4)',
+            '0 0 0 1px rgb(var(--color-text) / 0.10), 0 8px 48px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2)',
         }}
       >
         {showChrome && (
           <div
             className="flex-shrink-0 flex items-center gap-3"
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              borderBottom: '1px solid rgba(255,255,255,0.08)',
+              background: 'rgb(var(--color-text) / 0.05)',
+              borderBottom: '1px solid rgb(var(--color-text) / 0.08)',
               padding: '10px 16px',
             }}
           >
@@ -175,15 +175,15 @@ export function EmbedSlide({
             <div className="flex items-center gap-1.5" style={{ flexShrink: 0 }}>
               <div
                 className="rounded-full"
-                style={{ width: 12, height: 12, background: 'rgba(255,255,255,0.12)' }}
+                style={{ width: 12, height: 12, background: 'rgb(var(--color-text) / 0.18)' }}
               />
               <div
                 className="rounded-full"
-                style={{ width: 12, height: 12, background: 'rgba(255,255,255,0.12)' }}
+                style={{ width: 12, height: 12, background: 'rgb(var(--color-text) / 0.18)' }}
               />
               <div
                 className="rounded-full"
-                style={{ width: 12, height: 12, background: 'rgba(255,255,255,0.12)' }}
+                style={{ width: 12, height: 12, background: 'rgb(var(--color-text) / 0.18)' }}
               />
             </div>
 
@@ -191,8 +191,8 @@ export function EmbedSlide({
             <div
               className="flex-1 flex items-center gap-2 rounded-md"
               style={{
-                background: 'rgba(0,0,0,0.3)',
-                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'rgb(var(--color-text) / 0.07)',
+                border: '1px solid rgb(var(--color-text) / 0.08)',
                 padding: '5px 12px',
                 maxWidth: '480px',
                 margin: '0 auto',
@@ -250,8 +250,8 @@ export function EmbedSlide({
             <div
               className="absolute bottom-3 right-3 flex items-center gap-1 rounded-lg"
               style={{
-                background: 'rgba(15,15,15,0.75)',
-                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'rgba(0,0,0,0.72)',
+                border: '1px solid rgb(var(--color-text) / 0.12)',
                 padding: '6px 10px',
                 backdropFilter: 'blur(8px)',
               }}

@@ -35,14 +35,14 @@ const GAP_DEG = 6
 
 // ─── Curated palette (warm, works on dark backgrounds) ────────────────────────
 const CYCLE_PALETTE = [
-  '#F6C543', // golden yellow
-  '#E8853D', // warm orange
-  '#E05252', // coral red
-  '#D64BAD', // magenta pink
-  '#9B5DE5', // purple
-  '#5B8DEF', // blue
-  '#45B7A0', // teal
-  '#7BC67E', // green
+  '#b87a5a', // terracotta
+  '#7a9e8e', // sage
+  '#9a7a8a', // mauve
+  '#6b8fa6', // steel
+  '#c4a882', // sand
+  '#8a9a6a', // olive
+  '#b8956a', // amber
+  '#7a8a9e', // slate
 ]
 
 // ─── Adaptive sizing ─────────────────────────────────────────────────────────
@@ -226,8 +226,8 @@ export function CycleSlide({
           {/* Subtle centre glow */}
           <defs>
             <radialGradient id="cycle-glow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="rgba(255,255,255,0.06)" />
-              <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+              <stop offset="0%" stopColor="rgba(128,128,128,0.06)" />
+              <stop offset="100%" stopColor="rgba(128,128,128,0)" />
             </radialGradient>
           </defs>
           <circle cx={CX} cy={CY} r={inner - 12} fill="url(#cycle-glow)" />
@@ -352,10 +352,10 @@ export function CycleSlide({
                     y={labelY + 10}
                     textAnchor={textAnchor}
                     dominantBaseline="central"
-                    fill="rgba(255,255,255,0.50)"
                     fontSize={descFont}
                     fontFamily="var(--font-body)"
                     style={{
+                      fill: 'rgb(var(--color-muted))',
                       opacity: visible && !fadingOut ? 1 : 0,
                       transition: growing
                         ? `opacity 280ms ease ${SEG_GROW - 100}ms`

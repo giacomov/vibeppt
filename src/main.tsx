@@ -12,8 +12,10 @@ import { Navigation } from './components/Navigation'
 import { PresenterNotes } from './components/PresenterNotes'
 import { PresenterWindow } from './components/PresenterWindow'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { Sun, Moon } from 'lucide-react'
 import { isExportMode } from './utils/export'
-import { toChannels, sanitizeFont, applyDefaultTokens } from './utils/theme'
+import { toChannels, sanitizeFont, applyDefaultTokens, applyPalette, getStoredTheme, storeTheme } from './utils/theme'
+import type { ThemeMode } from './utils/theme'
 
 const initParams = new URLSearchParams(window.location.search)
 const deckParam = initParams.get('deck')
@@ -33,6 +35,12 @@ function App() {
     return i
   })
   const [presenterOpen, setPresenterOpen] = useState(false)
+  const [themeMode, setThemeMode] = useState<ThemeMode>(getStoredTheme)
+
+  useEffect(() => {
+    applyPalette(themeMode)
+    storeTheme(themeMode)
+  }, [themeMode])
 
   const handleSelect = useCallback((entry: DeckEntry) => {
     setSelectedDeck(entry)
@@ -127,6 +135,14 @@ function App() {
           className="absolute top-4 left-4 opacity-0 group-hover:opacity-100 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300"
         >
           ← All decks
+        </button>
+        <button
+          onClick={() => setThemeMode(m => m === 'light' ? 'dark' : 'light')}
+          className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 flex items-center gap-1.5 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300"
+          aria-label="Toggle theme"
+        >
+          {themeMode === 'light' ? <Moon size={12} /> : <Sun size={12} />}
+          {themeMode === 'light' ? 'Dark' : 'Light'}
         </button>
         <button
           onClick={() => setPresenterOpen(true)}

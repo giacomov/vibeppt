@@ -1,6 +1,10 @@
 import { useRef, useEffect, useState, type ReactNode } from 'react'
 import type { AuthorInfo } from '../types/author'
 import { SLIDE_WIDTH, SLIDE_HEIGHT } from '../constants'
+import { isExportMode } from '../utils/export'
+
+const SLIDE_RATIO = SLIDE_WIDTH / SLIDE_HEIGHT
+const MIN_ADAPT_RATIO = SLIDE_RATIO * 0.8
 
 interface SlideWrapperProps {
   children: ReactNode
@@ -11,15 +15,22 @@ interface SlideWrapperProps {
 
 export function SlideWrapper({ children, author, slideNumber, totalSlides }: SlideWrapperProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [scale, setScale] = useState(1)
+  const [dims, setDims] = useState({ scale: 1, effectiveHeight: SLIDE_HEIGHT, hasGaps: false })
 
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
     const update = () => {
-      const scaleW = el.offsetWidth / SLIDE_WIDTH
-      const scaleH = el.offsetHeight / SLIDE_HEIGHT
-      setScale(Math.min(scaleW, scaleH))
+      const w = el.offsetWidth
+      const h = el.offsetHeight
+      const viewportRatio = w / h
+      const effectiveRatio =
+        !isExportMode && viewportRatio >= MIN_ADAPT_RATIO && viewportRatio < SLIDE_RATIO
+          ? viewportRatio
+          : SLIDE_RATIO
+      const effectiveHeight = Math.round(SLIDE_WIDTH / effectiveRatio)
+      const scale = Math.min(w / SLIDE_WIDTH, h / effectiveHeight)
+      setDims({ scale, effectiveHeight, hasGaps: effectiveRatio === SLIDE_RATIO })
     }
     update()
     const ro = new ResizeObserver(update)
@@ -27,19 +38,20 @@ export function SlideWrapper({ children, author, slideNumber, totalSlides }: Sli
     return () => ro.disconnect()
   }, [])
 
+  const { scale, effectiveHeight, hasGaps } = dims
   const renderedWidth = SLIDE_WIDTH * scale
-  const renderedHeight = SLIDE_HEIGHT * scale
+  const renderedHeight = effectiveHeight * scale
 
   return (
     <div ref={containerRef} className="flex items-center justify-center w-screen h-screen bg-background">
       <div
         style={{ width: renderedWidth, height: renderedHeight }}
-        className="relative overflow-hidden rounded-lg shadow-2xl"
+        className={`relative overflow-hidden${hasGaps ? ' rounded-lg shadow-2xl' : ''}`}
       >
         <div
           style={{
             width: `${SLIDE_WIDTH}px`,
-            height: `${SLIDE_HEIGHT}px`,
+            height: `${effectiveHeight}px`,
             transform: `scale(${scale})`,
             transformOrigin: 'top left',
             position: 'absolute',

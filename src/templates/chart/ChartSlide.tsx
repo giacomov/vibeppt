@@ -22,7 +22,7 @@ export interface ChartSlideProps {
   header?: ReactNode
 }
 
-const PIE_COLORS = [COLOR_ACCENT, '#34D399', '#10B981', '#059669', '#047857', '#065F46']
+const PIE_COLORS = ['#b87a5a', '#c99278', '#a06448', '#d4aa94', '#8a5240', '#e0c0af']
 
 const tooltipStyle: CSSProperties = {
   backgroundColor: COLOR_SURFACE,
@@ -53,7 +53,7 @@ function BarVariant({ data }: { data: { name: string; value: number }[] }): Reac
         <CartesianGrid strokeDasharray="3 3" stroke={COLOR_SURFACE} vertical={false} />
         <XAxis dataKey="name" tick={baseTickStyle} axisLine={{ stroke: COLOR_SURFACE }} tickLine={false} />
         <YAxis tick={monoTickStyle} axisLine={false} tickLine={false} width={48} />
-        <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(110,231,183,0.04)' }} />
+        <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgb(var(--color-accent) / 0.06)' }} />
         <Bar dataKey="value" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>

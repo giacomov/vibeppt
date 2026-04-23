@@ -11,8 +11,11 @@ export interface HeatmapSlideProps {
   colAxisLabel?: string
 }
 
+// High-value cells have a saturated accent fill → always need dark text for contrast.
+// Low-value cells are nearly transparent over the slide background → need a color
+// that matches the slide text, which adapts to the active theme palette.
 function textColor(v: number): string {
-  return v >= 0.5 ? '#0F0F0F' : 'rgba(245,245,245,0.85)'
+  return v >= 0.5 ? '#0F0F0F' : 'rgb(var(--color-text))'
 }
 
 export function HeatmapSlide({

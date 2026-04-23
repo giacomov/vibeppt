@@ -23,7 +23,7 @@ export function TestimonialSlide({ quote, author, role, company, avatarUrl, rati
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.5) 100%)',
+          background: 'radial-gradient(ellipse at center, transparent 35%, rgba(28,25,23,0.25) 100%)',
         }}
       />
 

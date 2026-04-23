@@ -1,4 +1,20 @@
-import { tokens } from '../theme/tokens'
+import { lightTokens, darkTokens } from '../theme/tokens'
+
+export type ThemeMode = 'light' | 'dark'
+
+const STORAGE_KEY = 'vibeppt-theme'
+
+export function getStoredTheme(): ThemeMode {
+  try {
+    const v = localStorage.getItem(STORAGE_KEY)
+    if (v === 'light' || v === 'dark') return v
+  } catch {}
+  return 'light'
+}
+
+export function storeTheme(mode: ThemeMode): void {
+  try { localStorage.setItem(STORAGE_KEY, mode) } catch {}
+}
 
 /**
  * Convert #rgb or #rrggbb to "R G B" channel string for CSS variable opacity support.
@@ -23,12 +39,11 @@ export function sanitizeFont(font: string): string {
 }
 
 /**
- * Inject default theme CSS variables from tokens.ts onto :root.
- * Called once at app startup so tokens.ts is the single source of truth for defaults.
+ * Apply a named palette (light or dark) to :root CSS variables.
  */
-export function applyDefaultTokens(): void {
+export function applyPalette(mode: ThemeMode): void {
+  const { colors, fonts } = mode === 'dark' ? darkTokens : lightTokens
   const root = document.documentElement
-  const { colors, fonts } = tokens
   const colorMap: [string, string][] = [
     ['--color-background', colors.background],
     ['--color-surface',    colors.surface],
@@ -43,4 +58,12 @@ export function applyDefaultTokens(): void {
   root.style.setProperty('--font-display', sanitizeFont(fonts.display))
   root.style.setProperty('--font-body',    sanitizeFont(fonts.body))
   root.style.setProperty('--font-mono',    sanitizeFont(fonts.mono))
+}
+
+/**
+ * Inject default theme CSS variables from tokens.ts onto :root.
+ * Called once at app startup — reads stored preference from localStorage.
+ */
+export function applyDefaultTokens(): void {
+  applyPalette(getStoredTheme())
 }

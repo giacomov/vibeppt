@@ -98,7 +98,7 @@ export function KeyTakeawaySlide({ takeaways, header }: KeyTakeawaySlideProps): 
               right: isRight ? `${Math.max(0, offset - 2)}%` : '4%',
               top: `${itemTop(i)}%`,
               height: '1px',
-              background: 'rgba(255,255,255,0.032)',
+              background: 'rgb(var(--color-text) / 0.04)',
               pointerEvents: 'none',
             }}
           />
@@ -154,8 +154,8 @@ export function KeyTakeawaySlide({ takeaways, header }: KeyTakeawaySlideProps): 
                   letterSpacing: '-0.022em',
                   textShadow:
                     phase === 'bright'
-                      ? '0 0 80px rgba(110,231,183,0.18), 0 4px 0 rgba(0,0,0,0.7)'
-                      : '0 4px 0 rgba(0,0,0,0.5)',
+                      ? '0 0 80px rgb(var(--color-accent) / 0.18), 0 4px 0 rgb(var(--color-text) / 0.12)'
+                      : '0 4px 0 rgb(var(--color-text) / 0.08)',
                 }}
               >
                 {text}
