@@ -33,6 +33,10 @@ then open `http://localhost:3000` and ask to create a presentation about somethi
 
 You can also create presentations from a local file or folder (just say "Create a presentation from [path of the file or folder]") or from the web ("Search information about ... and then create a presentation").
 
+The agent will ask you a few questions, then give you a outline, and if you confirm, it will implement it for you.
+
+After implementing it, it will export each slide as an image and check for alignment, overlap between elements, and any other defect (if any). If it finds issues, it will solve them for you.
+
 ## Editing the presentation
 
 Once the presentation is created, just click on it. The agent will know which presentation you have selected and which slide you are seeing, so just ask for the changes you want and it will implement them for you. They will be immediately reflected in the presentation.
