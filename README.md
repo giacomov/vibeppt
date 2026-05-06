@@ -30,6 +30,20 @@ then open `http://localhost:3000` and ask to create a presentation about somethi
 
 You can also create presentations from a local file or folder (just say "Create a presentation from [path of the file or folder]") or from the web ("Search information about ... and then create a presentation").
 
+## Playing the presentation
+
+Once you have a presentation and you want to present it, just switch to a new tab and go to `http://localhost:5173` then click on your presentation. If you want, hover to the top of the first slide and click on Presenter Mode (allow pop-ups) to display speaker notes. 
+
+NOTE: to edit the speaker notes, just go back to the editor and ask the agent to make the changes, OR, open your files in your favorite editor (like VS Code).
+
+## Exporting
+
+Just ask the agent to export the presentation (PDF or PNGs are supported).
+
+# Use your favorite coding agent
+
+If you prefer to use your own agent, just open the folder where you downloaded VibePPT in Claude Code, Cursor or any other coding agent that supports the agentskills.io standard.
+
 # CLI mode
 
 You can also use vibeppt through Claude Code or Cursor (pre-installed):
