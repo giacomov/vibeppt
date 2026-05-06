@@ -15,27 +15,36 @@ An AI-native slide deck builder: prompts in, slides out. Highly customizable.
 
 # Quick start
 
-Make sure you have Claude Code installed and authenticated.
+Make sure you have Claude Code installed and authenticated, then copy and paste this prompt into it:
 
-Install the package and its dependencies:
+```
+Verify that I have `npm` available, and if not install it for me.
 
-```shell
-> git clone https://github.com/giacomov/vibeppt.git
-> cd vibeppt
-> npm install && cd editor && npm install && cd ..
+Then clone the repository https://github.com/giacomov/vibeppt.
+
+Install the required dependencies with `npm install`, then also install the editor dependencies with `cd editor && npm install && cd ..`.
+
+Finally run with `npm run editor`.
 ```
 
-Run the editor:
-```
-> npm run editor
-```
-then open `http://localhost:3000` and ask to create a presentation about something.
+Then open `http://localhost:3000` and ask to create a presentation about something.
 
 You can also create presentations from a local file or folder (just say "Create a presentation from [path of the file or folder]") or from the web ("Search information about ... and then create a presentation").
 
 The agent will ask you a few questions, then give you a outline, and if you confirm, it will implement it for you.
 
 After implementing it, it will export each slide as an image and check for alignment, overlap between elements, and any other defect (if any). If it finds issues, it will solve them for you.
+
+### Or run the commands yourself
+
+```shell
+git clone https://github.com/giacomov/vibeppt.git
+cd vibeppt
+npm install && cd editor && npm install && cd ..
+npm run editor
+```
+
+Then open `http://localhost:3000`.
 
 ## Editing the presentation
 
@@ -57,13 +66,11 @@ NOTE: to edit the speaker notes, just go back to the editor and ask the agent to
 
 Just ask the agent to export the presentation (PDF or PNGs are supported).
 
-# Use your favorite coding agent
+---
 
-If you prefer to use your own agent, just open the folder where you downloaded VibePPT in Claude Code, Cursor or any other coding agent that supports the agentskills.io standard.
+# Use Claude Code or Cursor directly
 
-# CLI mode
-
-You can also use vibeppt through Claude Code or Cursor (pre-installed):
+If you prefer to skip the editor UI, open the vibeppt folder in Claude Code, Cursor, or any other coding agent that supports the agentskills.io standard and use the `/create-presentation` slash command directly.
 
 https://github.com/user-attachments/assets/bad693b2-c46b-407c-9d8a-8d16c6d073c7
 
@@ -71,15 +78,15 @@ https://github.com/user-attachments/assets/bad693b2-c46b-407c-9d8a-8d16c6d073c7
 
 https://github.com/user-attachments/assets/73025fde-8353-4c68-b85d-5ee7b10a68f9
 
-### Try youself in Claude Code:
+### Claude Code
 
 From within the `vibeppt` folder:
 ```
 claude --permission-mode auto "/create-presentation about this https://karpathy.bearblog.dev/year-in-review-2025/"
 ```
-or just run claude code and enter the prompt "/create-presentation about this https://karpathy.bearblog.dev/year-in-review-2025/" from within CC.
+or just run claude code and enter the prompt `/create-presentation about this https://karpathy.bearblog.dev/year-in-review-2025/` from within CC.
 
-### Same thing with Cursor agent
+### Cursor agent
 
 ```
 > agent --model claude-sonnet-4-6 --output-format text --yolo -p "/create-presentation about https://karpathy.bearblog.dev/year-in-review-2025"
@@ -103,36 +110,6 @@ The `karpathy-2025` deck is ready — 16 slides covering all six of Karpathy's p
 15. **TLDR** — KeyTakeawaySlide with Karpathy's closing lines
 16. **The End**
 ```
-
-# In short
-
-Give a coding agent (Claude Code, Cursor, etc.) a topic, and it produces a complete presentation — slides, animations, speaker notes — that you can then refine through conversation or code. 
-
-Or, built it slide by slide. Since it just React + TypeScript, your coding agents will feel right at home. If the available templates aren't enough, you can just vibe code your own and they will fit right in.
-
-It supports:
-* Text-to-presentation: just one prompt for one presentation. The agent will: create an outline -> create the slides -> render them -> analyze them and fix any error -> end. The agent will loop until all errors (coding or layout) are fixed.
-* Text-to-slide: you can create one slide at the time by just prompting your favorite tool (cursor, claude code, codex...) like "Create a new slide with the following content: ...". You can also ask it to create a new custom visualization, animation, and so on. Templates can help you start very quickly, but the sky is the limit. Just ask what you want like you would in any vibe coding situation.
-
-You can then change anything you want by prompting or modifying the code.
-
-Presentations are React + TypeScript components assembled from a template library (or custom-built with your favorite vibe coding tool), styled through a design token system, and rendered in a fixed 16:9 frame.
-
-## Getting started
-
-Ask your favorite chatbot/agent to install `npm` for you and to clone this repo. For example, you can copy/paste this in Claude Code or Cursor (or any other coding agent):
-
-```
-Verify that I have `npm` available, and if not install it for me. 
-
-Then clone the repository https://github.com/giacomov/vibeppt and create within it a presentations/ folder (will contain my presentations).
-
-Finally install the required dependencies with `npm install` and run with `npm run dev`.
-```
-
-Then go to your browser at `http://localhost:5173/` to have a look at the demo presentations.
-
-Whey you are ready to make your own, use `/create-presentation` (see next section).
 
 ## Creating presentations
 
@@ -200,7 +177,7 @@ npm run export -- --deck=<name> --format=both
 
 ---
 
-## Technical: How it works
+## How it works
 
 **Slides are just React components.** Each slide is a `.tsx` file that returns a `ReactNode`. A `deck.ts` manifest imports and orders them. The app auto-discovers all decks under `presentations/` — no config needed.
 
