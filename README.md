@@ -6,6 +6,9 @@
   <a href="https://buymeacoffee.com/giacomov"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me A Coffee" /></a>
 </div>
 
+> [!WARNING]
+> This is an early-stage prototype, things are changing fast.
+
 An AI-native slide deck builder: prompts in, slides out. Highly customizable. 
 
 <img width="3262" height="1858" alt="image" src="https://github.com/user-attachments/assets/47d75256-6946-428b-9e70-90dce22eb44c" />
