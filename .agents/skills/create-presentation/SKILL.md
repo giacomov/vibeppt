@@ -152,6 +152,169 @@ Then consider these when the content fits:
 
 Before jumping into implementation, always ask the user if the outline is good or if any change is needed.
 
+---
+
+## Patterns and Rules
+
+Read this section before starting Step 5. It defines all canonical patterns for slide implementation.
+
+### Cardinal Rules
+
+1. **Work in `presentations/` by default.** Never modify `src/templates/` unless a reusable layout is missing — if one is needed, invoke the `create-new-template` skill.
+2. **`deck.ts` is the only manifest.** The renderer imports one file per deck and gets everything it needs.
+3. **Slides are plain functions.** Return `ReactNode`. Attach metadata to the function object. Never use `React.FC`.
+4. **Use `SectionTitle` or `SubsectionTitle` for slide headers.** Never use `HeroTitle` in a content slide — it is only for `TitleSlide` openers and is far too large.
+5. **No magic hex strings.** Use only Tailwind token classes: `bg-background`, `bg-surface`, `bg-accent`, `text-slide-text`, `text-muted`, `font-display`, `font-body`, `font-mono`, `px-slide-x`, `py-slide-y`.
+6. **Import paths from `presentations/[deck]/` always start with `../../src/`.**
+7. **Icons: always Lucide React.** `import { X } from 'lucide-react'`, `size={22}`, never emoji strings (except `PrismSlide` icon fields, which explicitly accept both).
+8. **`example.tsx` is your reference.** Each template folder has one — a fully filled-in usage model. Read it, copy from it, never render it.
+
+### Creating a Slide
+
+```tsx
+import type { ReactNode } from 'react'
+import { BulletSlide } from '../../src/templates/bullet/BulletSlide'
+import { SectionTitle } from '../../src/templates/common/SlideTitle'
+import type { SlideMeta } from '../../src/types/slide'
+
+const MySlide = (): ReactNode => (
+  <BulletSlide
+    header={<SectionTitle title="Key Takeaways" />}
+    bullets={[
+      'First important point',
+      'Second important point',
+      'Third important point',
+    ]}
+  />
+)
+
+MySlide.meta = {
+  title: 'Key Takeaways',
+  notes: 'Presenter notes go here.',
+} satisfies SlideMeta
+
+export default MySlide
+```
+
+- `meta.notes` is optional but encouraged for presenter view.
+- Never import from `example.tsx` files — they are references, not components.
+
+### Creating a Deck
+
+**1. Title slide (`presentations/my-deck/title.tsx`):**
+
+```tsx
+import type { ReactNode } from 'react'
+import { TitleSlide } from '../../src/templates/title/TitleSlide'
+import { HeroTitle } from '../../src/templates/common/SlideTitle'
+import type { SlideMeta } from '../../src/types/slide'
+
+const Title = (): ReactNode => (
+  <TitleSlide>
+    <HeroTitle
+      headline="Deck Title"
+      eyebrow="Company · 2025"
+      subtitle="A one-sentence description of what this deck is about."
+    />
+  </TitleSlide>
+)
+
+Title.meta = { title: 'Title', notes: 'Opening slide.' } satisfies SlideMeta
+
+export default Title
+```
+
+**2. `deck.ts`:**
+
+```ts
+import type { Deck } from '../../src/types/slide'
+import Title from './title'
+
+export const deck: Deck = {
+  title: 'My Deck',
+  theme: { accent: '#E53E3E' },   // optional per-deck override
+  slides: [Title],
+}
+```
+
+All decks in `presentations/*/deck.ts` are auto-discovered — no other file edits needed.
+
+`ThemeOverride` fields: `accent`, `background`, `surface`, `text`, `muted`, `fontDisplay`, `fontBody`. A deck's `theme` never affects other decks.
+
+**Optional author info:**
+```json
+// presentations/[deck]/author/author.json
+{ "firstName": "Ada", "lastName": "Lovelace", "linkedIn": "https://linkedin.com/in/ada-lovelace" }
+```
+
+### Title Components
+
+Three shared components in `src/templates/common/SlideTitle.tsx` handle all title rendering.
+
+```tsx
+import { SectionTitle, SubsectionTitle, HeroTitle } from '../../src/templates/common/SlideTitle'
+```
+
+| Component | Use when | Key props |
+|---|---|---|
+| `HeroTitle` | Inside `TitleSlide` only — opening slides | `headline`, `eyebrow?`, `subtitle?` |
+| `SectionTitle` | `header` prop of any content template | `title`, `eyebrow?`, `subtitle?`, `icon?: ReactNode` |
+| `SubsectionTitle` | `header` prop for smaller/secondary headings | `title`, `eyebrow?`, `subtitle?`, `icon?: ReactNode` |
+
+### Overlaying Content
+
+Use `OverlaySlide` to layer arbitrary React content on top of any template without modifying it.
+
+```tsx
+import type { ReactNode } from 'react'
+import { OverlaySlide } from '../../src/templates/common/OverlaySlide'
+import { BulletSlide } from '../../src/templates/bullet/BulletSlide'
+import { SectionTitle } from '../../src/templates/common/SlideTitle'
+import type { SlideMeta } from '../../src/types/slide'
+
+const MySlide = (): ReactNode => (
+  <OverlaySlide overlay={
+    <div className="absolute bottom-6 right-8 font-mono text-muted uppercase" style={{ fontSize: '10px' }}>
+      CONFIDENTIAL
+    </div>
+  }>
+    <BulletSlide header={<SectionTitle title="Key Findings" />} bullets={['Point one', 'Point two']} />
+  </OverlaySlide>
+)
+
+MySlide.meta = { title: 'Key Findings' } satisfies SlideMeta
+export default MySlide
+```
+
+- Content inside `overlay` **must use `absolute` positioning** — the overlay container is `absolute inset-0`.
+- The overlay is `pointer-events-none` by default; add `pointer-events-auto` on specific elements to make them interactive.
+- Use for badges, watermarks, corner labels, floating callouts, or any decoration that doesn't belong in the template itself.
+
+### Export Mode
+
+Slides are exported via `npm run export`. The exporter fast-forwards all JS timers, then snaps CSS/WAAPI animations to their final state.
+
+**Any looping `setTimeout`/`setInterval` animation MUST stop after its first full reveal when `isExportMode` is true**, otherwise the animation lands mid-cycle and produces a blank screenshot.
+
+```tsx
+import { isExportMode } from '../../src/utils/export'
+
+useEffect(() => {
+  let ids: ReturnType<typeof setTimeout>[] = []
+  const cycle = () => {
+    ids.forEach(clearTimeout)
+    const schedule = isExportMode ? SCHEDULE.filter(([s]) => s !== 0) : SCHEDULE
+    ids = schedule.map(([s, t]) => setTimeout(() => setStep(s), t))
+    if (!isExportMode) ids.push(setTimeout(cycle, CYCLE_MS))
+  }
+  cycle()
+  return () => ids.forEach(clearTimeout)
+}, [])
+```
+
+One-shot animations (run once, no reset) need no change.
+
+---
 
 ## Step 5 — Implement slides
 
@@ -159,21 +322,13 @@ Create a task list with one task per slide file plus one task for `deck.ts`. Mar
 
 **For every slide file:**
 
-- Place it in `presentations/<deck-name>/`
-- Import paths always start with `../../src/`
-- Default export only — one slide per file
-- Function name matches the file concept (not the index number)
-- Attach `.meta = { title: '...', notes: '...' } satisfies SlideMeta`
-- Use `SectionTitle` or `SubsectionTitle` for the `header` prop — NEVER `HeroTitle` in a content slide
-- Use `HeroTitle` only inside `TitleSlide`
+- Place it in `presentations/<deck-name>/`, default export only — one slide per file
+- Read `src/templates/[name]/example.tsx` before implementing any slide using that template
+- Function name matches the slide concept (not the index number); attach `.meta = { title: '...', notes: '...' } satisfies SlideMeta`
+- Titles: use `SectionTitle` or `SubsectionTitle` for the `header` prop (see Title Components above). Busy slides like `StackSlide` should NOT have any title
 - `SectionTitleSlide` takes `title` as a direct string prop — no `header`, no `children`
 - `TheEndSlide` and `ImageSlide` take no `header` prop
-- Icons: always Lucide React (`import { X } from 'lucide-react'`), `size={22}`, never emoji strings (except PrismSlide icon fields, which accept both)
-- No magic hex strings — use only Tailwind token classes: `bg-background`, `bg-surface`, `bg-accent`, `text-slide-text`, `text-muted`, `font-display`, `font-body`, `font-mono`
-- Read the relevant `src/templates/[name]/example.tsx` before implementing any slide that uses that template
-- Titles should not have title props unless adding them is of significant value. Busy slides like `StackSlide` should NOT have any title
-- If creating a new template in `src/templates/`, always use `SlideBase` (or `SlideLayout` which wraps it) as the root — never a raw `<div>` with manual base styles. **Add new templates to the demo presentation under `demos/demo/` (one demo slide per template, imported into `demos/demo/deck.ts`).**
-- To layer arbitrary content on top of any template, wrap it with `OverlaySlide` from `../../src/templates/common/OverlaySlide`. Pass the overlay as the `overlay` prop. Content inside must use `absolute` positioning — the overlay container is `absolute inset-0`
+- If a needed template does not exist, invoke the `create-new-template` skill before continuing
 
 **`deck.ts` contract:**
 ```ts
@@ -186,9 +341,6 @@ export const deck: Deck = {
   slides: [/* ordered array */],
 }
 ```
-
-**Export mode — looping animations must stop:**
-Any slide with a looping `setTimeout`/`setInterval` animation must import `isExportMode` from `../../src/utils/export` and halt the loop after one full cycle when `isExportMode` is true.
 
 ## Step 6 — Build
 

@@ -76,14 +76,14 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [pendingApproval, setPendingApproval] = useState<PendingApproval | null>(null)
+  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([])
   const [qState, setQState] = useState<Record<string, QState>>({})
   const endRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, loading, pendingApproval])
+  }, [messages, loading, pendingApprovals])
 
   const postApprove = useCallback(async (
     id: string,
@@ -98,33 +98,36 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
   }, [])
 
   const allowTool = useCallback(async () => {
-    if (!pendingApproval) return
-    const { id, input: toolInput } = pendingApproval
-    setPendingApproval(null)
+    const current = pendingApprovals[0]
+    if (!current) return
+    const { id, input: toolInput } = current
+    setPendingApprovals(prev => prev.slice(1))
     setQState({})
     await postApprove(id, 'allow', toolInput)
-  }, [pendingApproval, postApprove])
+  }, [pendingApprovals, postApprove])
 
   const denyTool = useCallback(async () => {
-    if (!pendingApproval) return
-    const { id } = pendingApproval
-    setPendingApproval(null)
+    const current = pendingApprovals[0]
+    if (!current) return
+    const { id } = current
+    setPendingApprovals(prev => prev.slice(1))
     setQState({})
     await postApprove(id, 'deny')
-  }, [pendingApproval, postApprove])
+  }, [pendingApprovals, postApprove])
 
   const submitAnswers = useCallback(async () => {
-    if (!pendingApproval) return
-    const { id, input: toolInput } = pendingApproval
+    const current = pendingApprovals[0]
+    if (!current) return
+    const { id, input: toolInput } = current
     const questions = toolInput.questions as AskUserQuestionItem[]
     const answers: Record<string, string> = {}
     for (const q of questions) {
       answers[q.question] = computeAnswer(qState[q.question])
     }
-    setPendingApproval(null)
+    setPendingApprovals(prev => prev.slice(1))
     setQState({})
     await postApprove(id, 'allow', { questions, answers })
-  }, [pendingApproval, qState, postApprove])
+  }, [pendingApprovals, qState, postApprove])
 
   const toggleOption = (question: string, label: string, multi: boolean) => {
     setQState(prev => {
@@ -155,6 +158,7 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
   }
 
   const renderApprovalCard = (): ReactNode => {
+    const pendingApproval = pendingApprovals[0]
     if (!pendingApproval) return null
 
     if (pendingApproval.toolName === 'Bash') {
@@ -309,8 +313,7 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
           } else if (event.type === 'permission_request') {
             const ev = event as PermissionRequestEvent
             currentAssistantId = null
-            setPendingApproval({ id: ev.id, toolName: ev.toolName, input: ev.input, explanation: ev.explanation })
-            setQState({})
+            setPendingApprovals(prev => [...prev, { id: ev.id, toolName: ev.toolName, input: ev.input, explanation: ev.explanation }])
           } else if (event.type === 'error') {
             const err = event as ErrorEvent
             setMessages(prev => [...prev, { id: uid(), role: 'error', text: err.message }])
@@ -321,7 +324,7 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
       setMessages(prev => [...prev, { id: uid(), role: 'error', text: String(err) }])
     } finally {
       setLoading(false)
-      setPendingApproval(null)
+      setPendingApprovals([])
       setQState({})
     }
   }, [input, loading, slideContext])
@@ -334,7 +337,7 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
   }
 
   const reset = async () => {
-    setPendingApproval(null)
+    setPendingApprovals([])
     setQState({})
     await fetch('/reset', { method: 'POST' })
     setMessages([])
@@ -367,7 +370,7 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
         {messages.map(msg => (
           <Message key={msg.id} message={msg} />
         ))}
-        {loading && !pendingApproval && <div className="loading-dots">···</div>}
+        {loading && pendingApprovals.length === 0 && <div className="loading-dots">···</div>}
         {renderApprovalCard()}
         <div ref={endRef} />
       </div>
