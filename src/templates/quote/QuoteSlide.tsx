@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { SlideBase } from '../common/SlideBase'
 import { TitleChrome } from '../common/TitleChrome'
 
 export interface QuoteSlideProps {
@@ -12,7 +13,7 @@ export function QuoteSlide({ quote, attribution, role }: QuoteSlideProps): React
   const attributionDelay = lineDelay + 300
 
   return (
-    <div className="w-full h-full bg-background flex items-center justify-center relative overflow-hidden">
+    <SlideBase className="flex items-center justify-center">
       <TitleChrome />
 
       {/* Radial vignette */}
@@ -88,6 +89,6 @@ export function QuoteSlide({ quote, attribution, role }: QuoteSlideProps): React
           )}
         </div>
       </div>
-    </div>
+    </SlideBase>
   )
 }

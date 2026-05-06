@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Star } from 'lucide-react'
+import { SlideBase } from '../common/SlideBase'
 import { TitleChrome } from '../common/TitleChrome'
 import { initials } from '../common/initials'
 
@@ -16,7 +17,7 @@ export function TestimonialSlide({ quote, author, role, company, avatarUrl, rati
   const clampedRating = rating !== undefined ? Math.max(1, Math.min(5, Math.round(rating))) : undefined
 
   return (
-    <div className="w-full h-full bg-background flex items-center justify-center relative overflow-hidden">
+    <SlideBase className="flex items-center justify-center">
       <TitleChrome />
 
       {/* Radial vignette */}
@@ -86,6 +87,6 @@ export function TestimonialSlide({ quote, author, role, company, avatarUrl, rati
           </div>
         </div>
       </div>
-    </div>
+    </SlideBase>
   )
 }

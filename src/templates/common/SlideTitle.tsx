@@ -79,10 +79,7 @@ export function SubsectionTitle({ title, eyebrow, subtitle, icon }: SubsectionTi
       >
         {title}
       </h3>
-      <div className="flex items-center gap-3 mt-3">
-        <div className="w-8 h-0.5 bg-accent" />
-        <div className="flex-1 h-px bg-surface" />
-      </div>
+      <div className="w-8 h-0.5 bg-accent mt-3" />
       {subtitle && (
         <p
           className="font-body text-muted font-light leading-relaxed mt-2"
@@ -117,10 +114,7 @@ export function SectionTitle({ title, eyebrow, subtitle, icon }: SectionTitlePro
       >
         {title}
       </h2>
-      <div className="flex items-center gap-3 mt-5">
-        <div className="w-10 h-0.5 bg-accent" />
-        <div className="flex-1 h-px bg-surface" />
-      </div>
+      <div className="w-10 h-0.5 bg-accent mt-5" />
       {subtitle && (
         <p
           className="font-body text-muted font-light leading-relaxed mt-3"

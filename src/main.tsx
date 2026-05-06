@@ -21,6 +21,8 @@ const initParams = new URLSearchParams(window.location.search)
 const deckParam = initParams.get('deck')
 const slideParam = initParams.get('slide')
 
+const inEditor = window.parent !== window
+
 function App() {
   const [selectedDeck, setSelectedDeck] = useState<DeckEntry | null>(() =>
     deckParam ? (allDecks.find(d => d.name === deckParam) ?? null) : null
@@ -89,6 +91,25 @@ function App() {
     history.replaceState(null, '', `?${params}`)
   }, [selectedDeck, currentIndex])
 
+  // Broadcast current view to the editor iframe parent
+  useEffect(() => {
+    if (window.parent === window) return
+    if (selectedDeck === null) {
+      window.parent.postMessage({ type: 'vibeppt:context', screen: 'picker' }, '*')
+    } else {
+      const slide = selectedDeck.deck.slides[currentIndex]
+      window.parent.postMessage({
+        type: 'vibeppt:context',
+        screen: 'deck',
+        deckName: selectedDeck.name,
+        deckTitle: selectedDeck.deck.title,
+        slideIndex: currentIndex,
+        slideTotal: selectedDeck.deck.slides.length,
+        slideTitle: slide?.meta?.title ?? null,
+      }, '*')
+    }
+  }, [selectedDeck, currentIndex])
+
   if (selectedDeck === null) {
     return <DeckPicker decks={allDecks} onSelect={handleSelect} />
   }
@@ -132,13 +153,13 @@ function App() {
       <div className="fixed top-0 left-0 right-0 h-16 z-50 group">
         <button
           onClick={handleBack}
-          className="absolute top-4 left-4 opacity-0 group-hover:opacity-100 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300"
+          className={`absolute top-4 left-4 ${inEditor ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300`}
         >
           ← All decks
         </button>
         <button
           onClick={() => setThemeMode(m => m === 'light' ? 'dark' : 'light')}
-          className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 flex items-center gap-1.5 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300"
+          className={`absolute top-4 left-1/2 -translate-x-1/2 ${inEditor ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} flex items-center gap-1.5 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300`}
           aria-label="Toggle theme"
         >
           {themeMode === 'light' ? <Moon size={12} /> : <Sun size={12} />}
@@ -147,7 +168,7 @@ function App() {
         <button
           onClick={() => setPresenterOpen(true)}
           disabled={presenterOpen}
-          className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent disabled:opacity-40 transition-all duration-300"
+          className={`absolute top-4 right-4 ${inEditor ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent disabled:opacity-40 transition-all duration-300`}
         >
           Presenter View
         </button>

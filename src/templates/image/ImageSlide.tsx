@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { SlideBase } from '../common/SlideBase'
 
 export interface ImageSlideProps {
   src: string
@@ -12,7 +13,7 @@ export function ImageSlide({ src, alt, caption, position = 'center' }: ImageSlid
     position === 'top' ? 'top' : position === 'bottom' ? 'bottom' : 'center'
 
   return (
-    <div className="w-full h-full relative overflow-hidden bg-background">
+    <SlideBase>
       {/* Full-bleed image */}
       <img
         src={src}
@@ -60,6 +61,6 @@ export function ImageSlide({ src, alt, caption, position = 'center' }: ImageSlid
       >
         VIBEPPT
       </div>
-    </div>
+    </SlideBase>
   )
 }

@@ -338,18 +338,27 @@ async function main() {
     browser = await chromium.launch({ headless: true });
 
     // Fetch manifest with a temporary page.
+    // waitForFunction polls until React's useEffect has committed the manifest —
+    // networkidle fires before the MessageChannel macrotask that runs effects.
     const manifestPage = await browser.newPage(pageOptions);
+    manifestPage.on('console', (msg) => {
+      if (msg.type() === 'error') console.error('[page error]', msg.text())
+    });
+    manifestPage.on('pageerror', (err) => console.error('[page crash]', err.message));
     await manifestPage.goto(slideUrl(0), { waitUntil: "networkidle" });
 
     /** @type {SlideManifestItem[] | null} */
-    const rawManifest = await manifestPage.evaluate(() => {
-      const manifest = window.__SLIDE_EXPORT_MANIFEST__
-      if (!Array.isArray(manifest)) return null
-      return manifest.map((slide) => ({
-        id: String(slide.id),
-        title: String(slide.title),
-      }))
-    });
+    const rawManifest = await manifestPage.waitForFunction(
+      () => {
+        const manifest = window.__SLIDE_EXPORT_MANIFEST__
+        if (!Array.isArray(manifest) || manifest.length === 0) return null
+        return manifest.map((slide) => ({
+          id: String(slide.id),
+          title: String(slide.title),
+        }))
+      },
+      { timeout: 10000 },
+    ).then((handle) => handle.jsonValue()).catch(() => null);
 
     await manifestPage.close();
 

@@ -76,6 +76,29 @@ export default {
           '0%':   { opacity: '0', transform: 'translateY(12px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
+        'node-pop': {
+          '0%':   { transform: 'scale(0)', opacity: '0' },
+          '55%':  { transform: 'scale(1.4)', opacity: '1' },
+          '75%':  { transform: 'scale(0.85)' },
+          '90%':  { transform: 'scale(1.1)' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        'spine-grow-h': {
+          '0%':   { transform: 'scaleX(0)' },
+          '100%': { transform: 'scaleX(1)' },
+        },
+        'spine-grow-v': {
+          '0%':   { transform: 'scaleY(0)' },
+          '100%': { transform: 'scaleY(1)' },
+        },
+        'branch-draw': {
+          'from': { strokeDashoffset: 'var(--branch-len)' },
+          'to':   { strokeDashoffset: '0' },
+        },
+        'leaf-grow': {
+          '0%':   { transform: 'scale(0)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
       },
       animation: {
         'flap-top-out':   'flap-top-out 80ms ease-in forwards',
@@ -89,6 +112,11 @@ export default {
         'fade-up':        'fade-up 0.6s ease-out both',
         'line-expand':    'line-expand 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both',
         'subtitle-rise':  'subtitle-rise 0.6s ease-out both',
+        'node-pop':       'node-pop 2.5s cubic-bezier(0.34, 1.56, 0.64, 1) both',
+        'spine-grow-h':   'spine-grow-h var(--spine-dur, 0.8s) ease-out both',
+        'spine-grow-v':   'spine-grow-v 0.2s ease-out both',
+        'branch-draw':    'branch-draw 0.48s cubic-bezier(0.25,0.46,0.45,0.94) forwards',
+        'leaf-grow':      'leaf-grow 0.5s cubic-bezier(0.22, 1, 0.36, 1) both',
       },
     },
   },

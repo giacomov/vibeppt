@@ -5,7 +5,7 @@ import { initials } from '../common/initials'
 
 export interface TeamMember {
   name: string
-  role: string
+  role?: string
   imageUrl?: string
   linkedIn?: string
 }
@@ -62,9 +62,11 @@ export function TeamSlide({ header, members, columns }: TeamSlideProps): ReactNo
               <span className="font-display font-bold text-slide-text" style={{ fontSize: '18px' }}>
                 {member.name}
               </span>
-              <span className="font-body text-muted" style={{ fontSize: '14px' }}>
-                {member.role}
-              </span>
+              {member.role && (
+                <span className="font-body text-muted" style={{ fontSize: '14px' }}>
+                  {member.role}
+                </span>
+              )}
             </div>
 
             {member.linkedIn && (

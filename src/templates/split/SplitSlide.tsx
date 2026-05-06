@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { SlideBase } from '../common/SlideBase'
 
 export interface SplitSlideProps {
   left: ReactNode
@@ -14,10 +15,7 @@ const RATIO_COLUMNS: Record<string, string> = {
 
 export function SplitSlide({ left, right, ratio = '50/50' }: SplitSlideProps): ReactNode {
   return (
-    <div
-      className="w-full h-full bg-background overflow-hidden"
-      style={{ display: 'grid', gridTemplateColumns: RATIO_COLUMNS[ratio] }}
-    >
+    <SlideBase style={{ display: 'grid', gridTemplateColumns: RATIO_COLUMNS[ratio] }}>
       {/* Left panel */}
       <div
         className="overflow-hidden flex flex-col justify-center"
@@ -39,6 +37,6 @@ export function SplitSlide({ left, right, ratio = '50/50' }: SplitSlideProps): R
       >
         {right}
       </div>
-    </div>
+    </SlideBase>
   )
 }

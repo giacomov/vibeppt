@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode, KeyboardEvent } from 'react'
+import { SlideBase } from '../common/SlideBase'
 
 // Horizontal offset % used for both left- and right-aligned slots
 const SLOT_OFFSETS = [7, 16, 5, 20, 11, 14, 8, 18]
@@ -66,13 +67,12 @@ export function KeyTakeawaySlide({ takeaways, header }: KeyTakeawaySlideProps): 
   const fontSize = FONT_SIZES[Math.min(n, 7)] ?? 32
 
   return (
-    <div
-      className="w-full h-full bg-background relative overflow-hidden"
+    <SlideBase
       style={{ cursor: nextIdx <= n ? 'pointer' : 'default' }}
       role="button"
       tabIndex={nextIdx <= n ? 0 : -1}
       onClick={handleClick}
-      onKeyDown={(e: KeyboardEvent) => {
+      onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
           handleClick()
@@ -187,6 +187,6 @@ export function KeyTakeawaySlide({ takeaways, header }: KeyTakeawaySlideProps): 
           </div>
         )
       })}
-    </div>
+    </SlideBase>
   )
 }

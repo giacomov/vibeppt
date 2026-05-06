@@ -37,11 +37,12 @@ npx tsc --noEmit presentations/<deck>/<file>.tsx
 
 ```
 presentations/    → User's actual decks (user content — agents work here by default)
+demos/            → Template showcase decks (one slide per template; NOT for user presentations)
 src/templates/    → Reusable parameterized base components (the "vocabulary")
 src/components/   → App chrome: renderer, navigation, presenter UI
 ```
 
-**Agents default to working in `presentations/`.** Only add to `src/templates/` when a reusable layout doesn't exist yet.
+**Agents default to working in `presentations/`.** New user presentations go in `presentations/`, never in `demos/`. `demos/` is reserved for the template showcase — add a demo slide there only when creating a new template. Only add to `src/templates/` when a reusable layout doesn't exist yet.
 
 ---
 
@@ -88,14 +89,18 @@ src/
     matrix/           MatrixSlide.tsx + example.tsx
     roadmap/          RoadmapSlide.tsx + example.tsx
     process/          ProcessSlide.tsx + example.tsx
+    plant/            PlantSlide.tsx + example.tsx
     twocolumn/        TwoColumnSlide.tsx + example.tsx
     problemsolution/  ProblemSolutionSlide.tsx + example.tsx
     team/             TeamSlide.tsx + example.tsx
     testimonial/      TestimonialSlide.tsx + example.tsx
     icongrid/         IconGridSlide.tsx + example.tsx
+    boardingpass/     BoardingPassSlide.tsx + example.tsx
     common/
-      SlideLayout.tsx ← shared root wrapper for content slides
-      SlideTitle.tsx  ← HeroTitle, SectionTitle, SubsectionTitle
+      SlideBase.tsx    ← base container every template must use as its root
+      SlideLayout.tsx  ← padded flex-column wrapper for standard content slides (uses SlideBase)
+      OverlaySlide.tsx ← wrapper that layers arbitrary React content on top of any template
+      SlideTitle.tsx   ← HeroTitle, SectionTitle, SubsectionTitle
   components/
     SlideWrapper.tsx
     SlideRenderer.tsx
@@ -777,7 +782,7 @@ import { SectionTitle } from '../../src/templates/common/SlideTitle'
 />
 ```
 
-`direction`: `'horizontal'` (default, alternating above/below spine) | `'vertical'` (left spine, content right). `highlight: true` enlarges the node circle. Dates in mono/accent. Items stagger with `animate-fade-up`.
+`direction`: `'horizontal'` (default, alternating above/below spine — spine grows with `animate-spine-grow-h`) | `'vertical'` (left spine, content right — connectors grow with `animate-spine-grow-v`). `highlight: true` enlarges the node circle with a glow halo. Nodes pop in with `animate-node-pop`. Dates in mono/accent.
 
 ---
 
@@ -849,7 +854,29 @@ import { SectionTitle } from '../../src/templates/common/SlideTitle'
 />
 ```
 
-`direction`: `'horizontal'` (default, best for 3–5 steps, `ChevronRight` connectors) | `'vertical'` (best for 4–6 steps, spine connector). Numbered circle badge (44px, mono/accent). Steps stagger with `animate-fade-up`.
+`direction`: `'horizontal'` (default, best for 3–5 steps — accent arrow-band with chevron-shaped segments, step numbers in background color, content alternates above/below) | `'vertical'` (best for 4–6 steps — filled accent circle nodes with animated spine connector). Steps animate in with `animate-fade-up`; nodes pop with `animate-node-pop`; vertical spine grows with `animate-spine-grow-v`.
+
+---
+
+### `PlantSlide`
+**Use for:** Animated growing plant milestones — sequential steps revealed as a plant grows upward, each step branching off the main stem.
+
+```tsx
+import { PlantSlide } from '../../src/templates/plant/PlantSlide'
+import { SectionTitle } from '../../src/templates/common/SlideTitle'
+
+<PlantSlide
+  header={<SectionTitle title="How We Grow" eyebrow="Strategy" />}
+  steps={[
+    { title: 'Seed', description: 'One clear idea' },
+    { title: 'Root', description: 'Build the foundation' },
+    { title: 'Sprout', description: 'First visible results' },
+    { title: 'Bloom', description: 'Full momentum' },
+  ]}
+/>
+```
+
+`steps` is an array of `{ title, description? }`. The stem grows upward and each step appears as a new branch with leaves, drawn in sequence. Best with 3–6 steps.
 
 ---
 
@@ -917,7 +944,7 @@ import { SectionTitle } from '../../src/templates/common/SlideTitle'
 />
 ```
 
-`columns`: `2` | `3` | `4` (default: auto-detected from member count). Each card: 72px avatar circle (photo or initials fallback), name in display font, role in muted, optional LinkedIn link. Cards stagger with `animate-fade-up`.
+`columns`: `2` | `3` | `4` (default: auto-detected from member count). Each card: 72px avatar circle (photo or initials fallback), name in display font, optional role in muted, optional LinkedIn link. Cards stagger with `animate-fade-up`.
 
 ---
 
@@ -963,6 +990,32 @@ import { Cpu, Shield, Zap } from 'lucide-react'
 
 ---
 
+### `BoardingPassSlide`
+**Use for:** Announcement / save-the-date / "coming soon" slides framed as an airline boarding pass — a horizontal ticket with a perforated stub. Fields can flicker through split-flap characters before settling.
+
+```tsx
+import { BoardingPassSlide } from '../../src/templates/boardingpass/BoardingPassSlide'
+
+<BoardingPassSlide
+  airline="Risk Labs · Incubator"
+  flightNumber="Cycle 2"
+  from="Your Idea"
+  to="Graduation"
+  fields={[
+    { label: 'Flight',    value: 'Cycle 2' },
+    { label: 'Duration',  value: '12 Weeks' },
+    { label: 'Departure', value: 'TBD', flicker: true },
+  ]}
+  stub={{ label: 'Passengers', value: '2-4', footer: '2026' }}
+  stamp="Boarding Soon"
+  tagline="Self-organized teams · High-risk, high-reward · Submit your ideas"
+/>
+```
+
+Animated sequence: pass slides up → fields fade in staggered → flickering field shuffles via `SplitFlapChar` → barcode draws left-to-right → rubber stamp slams down (same nested-border spring as the cohort `GRADUATED` stamp). No `header` prop — the pass is the slide. `flicker: true` on a field routes its value through the airport-board animation. Stamp is positioned in the lower-right of the main panel so it doesn't obscure the FROM → TO headlines.
+
+---
+
 ## Template Decision Guide
 
 | Content type | Template |
@@ -994,11 +1047,13 @@ import { Cpu, Shield, Zap } from 'lucide-react'
 | 2×2 strategy/priority matrix | `MatrixSlide` |
 | Multi-track product roadmap | `RoadmapSlide` |
 | Linear step-by-step sequence | `ProcessSlide` |
+| Animated growing plant milestones | `PlantSlide` |
 | Two structured columns with list content | `TwoColumnSlide` |
 | Problem vs. Solution framing | `ProblemSolutionSlide` |
 | Team roster (2–8 members) | `TeamSlide` |
 | Customer testimonial with attribution | `TestimonialSlide` |
 | Icon grid of features/concepts | `IconGridSlide` |
+| Save-the-date / "coming soon" / ticket-style announcement | `BoardingPassSlide` |
 | Final thank-you / CTA / contact | `ClosingSlide` |
 | Closing / conclusion | `TheEndSlide` |
 
@@ -1018,6 +1073,8 @@ src/templates/[name]/
 
 ### `[Name]Slide.tsx` pattern
 
+**Standard padded layout** (header slot + `60px 80px` padding — use for most templates):
+
 ```tsx
 import type { ReactNode } from 'react'
 import { SlideLayout } from '../common/SlideLayout'
@@ -1035,16 +1092,66 @@ export function [Name]Slide({ header }: [Name]SlideProps): ReactNode {
 }
 ```
 
+**Custom layout** (centered, grid, absolute-positioned, etc. — use when the standard padding doesn't fit):
+
+```tsx
+import type { ReactNode } from 'react'
+import { SlideBase } from '../common/SlideBase'
+
+export function [Name]Slide(): ReactNode {
+  return (
+    <SlideBase className="flex items-center justify-center">
+      {/* content */}
+    </SlideBase>
+  )
+}
+```
+
 ### Styling rules
 
-- Root element: `w-full h-full` — always fill the 16:9 frame.
+- Root element: **always use `SlideBase` (via `SlideLayout` or directly) — never a raw `<div>`**. `SlideBase` enforces `w-full h-full bg-background relative overflow-hidden` for every template.
 - Background: `bg-background` — never hardcode colors.
 - Use only Tailwind token classes: `bg-background`, `bg-surface`, `bg-accent`, `text-slide-text`, `text-muted`, `font-display`, `font-body`, `font-mono`, `px-slide-x`, `py-slide-y`.
 - No magic hex strings in JSX.
 
 ### After creating
 
-Add the template to the catalog table in this file (`AGENTS.md`) and to `src/templates/common/SlideTitle.tsx`'s import in `example.tsx`.
+- Add the template to the catalog table in this file (`AGENTS.md`) and to `src/templates/common/SlideTitle.tsx`'s import in `example.tsx`.
+- **Add a demo slide for the new template to the demo presentation under `demos/demo/`** (one file per template, e.g. `demos/demo/[name].tsx`), and import it into `demos/demo/deck.ts` so the new template shows up alongside the others.
+
+---
+
+## Overlaying content on a slide
+
+Use `OverlaySlide` to layer arbitrary React content on top of any template without modifying it.
+
+```tsx
+import type { ReactNode } from 'react'
+import { OverlaySlide } from '../../src/templates/common/OverlaySlide'
+import { BulletSlide } from '../../src/templates/bullet/BulletSlide'
+import { SectionTitle } from '../../src/templates/common/SlideTitle'
+import type { SlideMeta } from '../../src/types/slide'
+
+const MySlide = (): ReactNode => (
+  <OverlaySlide overlay={
+    <div className="absolute bottom-6 right-8 font-mono text-muted uppercase" style={{ fontSize: '10px' }}>
+      CONFIDENTIAL
+    </div>
+  }>
+    <BulletSlide header={<SectionTitle title="Key Findings" />} bullets={['Point one', 'Point two']} />
+  </OverlaySlide>
+)
+
+MySlide.meta = { title: 'Key Findings' } satisfies SlideMeta
+export default MySlide
+```
+
+### Rules
+
+- `overlay` accepts any `ReactNode` — a bare div, a Lucide icon, a custom component with its own state, anything.
+- Content inside `overlay` **must use `absolute` positioning** (`top-*`, `bottom-*`, `left-*`, `right-*`, `inset-*`). The overlay container is `absolute inset-0`, so unpositioned content falls to the top-left corner.
+- The overlay container is `pointer-events-none` by default, so it never blocks clicks on interactive slides like `KeyTakeawaySlide`. To make a specific overlay element interactive, set `pointer-events-auto` on that element directly.
+- Works with every template — `OverlaySlide` is a transparent wrapper with no background or overflow of its own.
 
 ---
 
@@ -1052,8 +1159,22 @@ Add the template to the catalog table in this file (`AGENTS.md`) and to `src/tem
 
 ### Global tokens (`src/theme/tokens.ts`)
 
+The app supports **light and dark palettes**, toggled via the UI (persisted in localStorage). The Tailwind build uses `tokens` (= `lightTokens`) for static class generation; at runtime, CSS variables are driven by the selected palette.
+
 ```ts
-export const tokens = {
+export const lightTokens = {
+  colors: {
+    background: '#f5f3ee',
+    surface:    '#ece9e2',
+    accent:     '#b87a5a',
+    text:       '#1c1917',
+    muted:      '#9a9690',
+  },
+  fonts: { display: '"Playfair Display", serif', body: '"DM Sans", sans-serif', mono: '"JetBrains Mono", monospace' },
+  spacing: { slideX: '4rem', slideY: '3rem' },
+}
+
+export const darkTokens = {
   colors: {
     background: '#0F0F0F',
     surface:    '#1A1A1A',
@@ -1061,16 +1182,12 @@ export const tokens = {
     text:       '#F5F5F5',
     muted:      '#888888',
   },
-  fonts: {
-    display: '"Playfair Display", serif',
-    body:    '"DM Sans", sans-serif',
-    mono:    '"JetBrains Mono", monospace',
-  },
-  spacing: {
-    slideX: '4rem',
-    slideY: '3rem',
-  },
+  fonts: { display: '"Playfair Display", serif', body: '"DM Sans", sans-serif', mono: '"JetBrains Mono", monospace' },
+  spacing: { slideX: '4rem', slideY: '3rem' },
 }
+
+// Default export used by tailwind.config.ts at build time
+export const tokens = lightTokens
 ```
 
 ### Token → Tailwind class mapping

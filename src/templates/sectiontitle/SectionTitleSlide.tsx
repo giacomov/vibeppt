@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
+import { SlideBase } from '../common/SlideBase'
 import { TitleChrome } from '../common/TitleChrome'
 import { SplitFlapChar } from '../common/SplitFlapChar'
 
@@ -37,7 +38,7 @@ export function SectionTitleSlide({ title, eyebrow, subtitle }: SectionTitleSlid
   }, [subtitle, subtitleDelay])
 
   return (
-    <div className="w-full h-full bg-background relative overflow-hidden flex">
+    <SlideBase className="flex">
       {/* Left accent bar */}
       <div className="w-1 bg-accent flex-shrink-0" />
 
@@ -104,6 +105,6 @@ export function SectionTitleSlide({ title, eyebrow, subtitle }: SectionTitleSlid
         )}
       </div>
 
-    </div>
+    </SlideBase>
   )
 }

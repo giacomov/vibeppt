@@ -1,3 +1,7 @@
+---
+description: Build a slide deck using VibePPT
+---
+
 # Create Presentation
 
 Build a complete, production-quality VibePPT slide deck from the user's topic and sources.
@@ -48,10 +52,12 @@ Here are a few strategic approaches to a presentation, each with a distinct goal
 
 ## Step 0 - Gather information
 
-If not in the prompt, ask the user these things:
+If not in the prompt, ask the user these things using the AskUserQuestion tool:
 1. Target audience (suggest some possibilities based on the topic, but allow a "other" class so the user can specify something else if needed)
 2. Allotted time (how much time the user has to present)
 3. Preferred presentation strategy: provide the list above (just the names), plus an Auto option active by default.
+
+Use the AskUserQuestion for each one of these.
 
 ## Step 1 — Gather sources
 
@@ -82,7 +88,8 @@ Before writing any code, produce a written outline reflecting your chosen strate
    - The key props / data it will need
 
 **Outline rules:**
-- Strong opening (TitleSlide), Agenda second (SplitFlapBulletSlide), clear middle sections divided by SectionTitleSlide dividers, memorable close with KeyTakeawaySlide or CompareSlide, TheEndSlide last — no exceptions.
+- Strong opening (TitleSlide), memorable close with KeyTakeawaySlide or CompareSlide, TheEndSlide last — no exceptions.
+- If the deck is long, add an agenda as second slide, and divide the content in manageable sections with `SectionTitleSlide` dividers. If the deck is short, skip the agenda and section dividers unless explicitly asked.
 - NEVER use the same template twice in a row.
 - NEVER repeat any template more than twice in the entire deck.
 - Each slide must carry exactly one idea. If a slide needs more than 25 words of body text, split it.
@@ -111,7 +118,29 @@ First, always ask: can this be one of these high-impact animated or visual templ
 | Click-to-reveal term definitions | `GlossarySlide` |
 | 2D intensity/attention matrix | `HeatmapSlide` |
 | Embed live web content / demo | `EmbedSlide` |
+| Single KPI or metric | `BigNumberSlide` |
+| Single pull quote with attribution | `QuoteSlide` |
+| Customer testimonial with attribution | `TestimonialSlide` |
+| An animation of a growing plant showing milestones or takeaways | `PlantSlide` |
+| Save-the-date / ticket-style announcement | `BoardingPassSlide` |
 | Closing / conclusion | `TheEndSlide` |
+
+Then consider these when the content fits:
+
+| Content type | Template |
+|---|---|
+| Problem vs. Solution framing | `ProblemSolutionSlide` |
+| Linear step-by-step sequence | `ProcessSlide` |
+| Chronological milestones | `TimelineSlide` |
+| Multi-track product roadmap | `RoadmapSlide` |
+| 2×2 strategy/priority matrix | `MatrixSlide` |
+| Two structured columns with list content | `TwoColumnSlide` |
+| Team roster (2–8 members) | `TeamSlide` |
+| Icon grid of features/concepts | `IconGridSlide` |
+| Numbered agenda with optional times | `AgendaSlide` |
+| Visual grid overview of sections | `TableOfContentsSlide` |
+| Static section divider (custom background) | `SectionDividerSlide` |
+| Final CTA / contact info slide | `ClosingSlide` |
 
 **Only use these as a last resort — exhaust all options above first:**
 
@@ -119,9 +148,12 @@ First, always ask: can this be one of these high-impact animated or visual templ
 |---|---|
 | 2–6 key points with no better fit | `BulletSlide` |
 
-Present the outline to the user and confirm before proceeding to implementation.
+## Step 4 — Confirm the outline
 
-## Step 4 — Implement slides
+Before jumping into implementation, always ask the user if the outline is good or if any change is needed.
+
+
+## Step 5 — Implement slides
 
 Create a task list with one task per slide file plus one task for `deck.ts`. Mark dependencies (all slide tasks must complete before `deck.ts`). Execute all slide tasks in parallel, then create `deck.ts`.
 
@@ -136,10 +168,12 @@ Create a task list with one task per slide file plus one task for `deck.ts`. Mar
 - Use `HeroTitle` only inside `TitleSlide`
 - `SectionTitleSlide` takes `title` as a direct string prop — no `header`, no `children`
 - `TheEndSlide` and `ImageSlide` take no `header` prop
-- Icons: always Lucide React (`import { X } from 'lucide-react'`), `size={22}`, never emoji strings
+- Icons: always Lucide React (`import { X } from 'lucide-react'`), `size={22}`, never emoji strings (except PrismSlide icon fields, which accept both)
 - No magic hex strings — use only Tailwind token classes: `bg-background`, `bg-surface`, `bg-accent`, `text-slide-text`, `text-muted`, `font-display`, `font-body`, `font-mono`
 - Read the relevant `src/templates/[name]/example.tsx` before implementing any slide that uses that template
 - Titles should not have title props unless adding them is of significant value. Busy slides like `StackSlide` should NOT have any title
+- If creating a new template in `src/templates/`, always use `SlideBase` (or `SlideLayout` which wraps it) as the root — never a raw `<div>` with manual base styles. **Add new templates to the demo presentation under `demos/demo/` (one demo slide per template, imported into `demos/demo/deck.ts`).**
+- To layer arbitrary content on top of any template, wrap it with `OverlaySlide` from `../../src/templates/common/OverlaySlide`. Pass the overlay as the `overlay` prop. Content inside must use `absolute` positioning — the overlay container is `absolute inset-0`
 
 **`deck.ts` contract:**
 ```ts
@@ -156,13 +190,13 @@ export const deck: Deck = {
 **Export mode — looping animations must stop:**
 Any slide with a looping `setTimeout`/`setInterval` animation must import `isExportMode` from `../../src/utils/export` and halt the loop after one full cycle when `isExportMode` is true.
 
-## Step 5 — Build
+## Step 6 — Build
 
 Run `npm run build` and fix all TypeScript and import errors before proceeding. Do not skip this step.
 
-## Step 5 — Export and visual QA
+## Step 7 — Export and visual QA
 
-Export all slides:
+Tell the user you are going to verify the presentation, then export all slides:
 ```
 npm run export -- --deck=<deck-name> --format=png
 ```
@@ -170,6 +204,7 @@ npm run export -- --deck=<deck-name> --format=png
 Then read **every PNG** in `exports/<deck-name>/` one by one. For each slide, check:
 - No text is clipped or overflowing the 16:9 frame
 - No content is cut off at the edges
+- No overlap between components. BE PARTICULARLY CAREFUL WITH THE TITLE and other elements of the slide
 - The slide is not blank or near-blank due to a stalled animation
 - Layout is balanced — if a slide has too much text, shorten or summarize it (remove words, tighten phrases, split into two slides if needed) rather than shrinking the font
 - Accent color is used intentionally and consistently

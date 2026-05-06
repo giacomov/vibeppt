@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { SlideBase } from '../common/SlideBase'
 import { TitleChrome } from '../common/TitleChrome'
 
 export interface TitleSlideProps {
@@ -7,7 +8,7 @@ export interface TitleSlideProps {
 
 export function TitleSlide({ children }: TitleSlideProps): ReactNode {
   return (
-    <div className="w-full h-full bg-background relative overflow-hidden flex">
+    <SlideBase className="flex">
       {/* Left accent bar */}
       <div className="w-1 bg-accent flex-shrink-0" />
 
@@ -30,6 +31,6 @@ export function TitleSlide({ children }: TitleSlideProps): ReactNode {
         {children}
       </div>
 
-    </div>
+    </SlideBase>
   )
 }

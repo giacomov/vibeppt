@@ -14,6 +14,11 @@ export interface TimelineSlideProps {
   direction?: 'horizontal' | 'vertical'
 }
 
+const H_ITEM_DELAY = 900    // ms between each node pop (horizontal)
+const V_STEP = 1200         // ms between each node pop (vertical)
+const V_POST_NODE = 300     // ms after node before connector starts growing
+const V_CONNECTOR_DUR = 900 // ms for connector scaleY animation
+
 function TimelineItemContent({ item }: { item: TimelineItem }): ReactNode {
   return (
     <>
@@ -27,44 +32,74 @@ function TimelineItemContent({ item }: { item: TimelineItem }): ReactNode {
 }
 
 function HorizontalTimeline({ items }: { items: TimelineItem[] }): ReactNode {
+  const n = items.length
+  const spineDuration = Math.max(1, n - 1) * H_ITEM_DELAY
+
   return (
     <div className="flex flex-col justify-center flex-1">
-      {/* Spine + nodes */}
       <div className="relative flex items-center">
-        {/* Spine line */}
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-surface" />
+        {/* Animated spine — grows left to right */}
+        <div
+          className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-surface animate-spine-grow-h"
+          style={{
+            transformOrigin: 'left center',
+            '--spine-dur': `${spineDuration}ms`,
+          } as React.CSSProperties}
+        />
 
         {/* Items */}
         <div className="relative w-full flex justify-between">
           {items.map((item, i) => {
             const isAbove = i % 2 === 0
+            const nodeDelay = i * H_ITEM_DELAY
+            const contentDelay = nodeDelay + 650
             const nodeSize = item.highlight ? 14 : 10
+            const highlightStyle: React.CSSProperties = item.highlight
+              ? { boxShadow: '0 0 0 3px rgb(var(--color-accent) / 0.25), 0 0 16px rgb(var(--color-accent) / 0.2)' }
+              : {}
+
             return (
-              <div
-                key={i}
-                className="flex flex-col items-center animate-fade-up"
-                style={{ animationDelay: `${i * 100}ms` }}
-              >
-                {/* Slot above node — content rendered only when isAbove, placeholder otherwise */}
+              <div key={i} className="flex flex-col items-center">
+                {/* Slot above node */}
                 <div
                   className="flex flex-col items-center pb-3"
                   style={{ minHeight: '80px', justifyContent: 'flex-end' }}
                 >
-                  {isAbove && <TimelineItemContent item={item} />}
+                  {isAbove && (
+                    <div
+                      className="flex flex-col items-center animate-fade-up"
+                      style={{ animationDelay: `${contentDelay}ms` }}
+                    >
+                      <TimelineItemContent item={item} />
+                    </div>
+                  )}
                 </div>
 
                 {/* Node */}
                 <div
-                  className={item.highlight ? 'bg-accent border-2 border-accent rounded-full' : 'bg-accent rounded-full'}
-                  style={{ width: nodeSize, height: nodeSize, flexShrink: 0 }}
+                  className="animate-node-pop rounded-full bg-accent"
+                  style={{
+                    width: nodeSize,
+                    height: nodeSize,
+                    flexShrink: 0,
+                    animationDelay: `${nodeDelay}ms`,
+                    ...highlightStyle,
+                  }}
                 />
 
-                {/* Slot below node — content rendered only when !isAbove, placeholder otherwise */}
+                {/* Slot below node */}
                 <div
                   className="flex flex-col items-center pt-3"
                   style={{ minHeight: '80px', justifyContent: 'flex-start' }}
                 >
-                  {!isAbove && <TimelineItemContent item={item} />}
+                  {!isAbove && (
+                    <div
+                      className="flex flex-col items-center animate-fade-up"
+                      style={{ animationDelay: `${contentDelay}ms` }}
+                    >
+                      <TimelineItemContent item={item} />
+                    </div>
+                  )}
                 </div>
               </div>
             )
@@ -81,23 +116,50 @@ function VerticalTimeline({ items }: { items: TimelineItem[] }): ReactNode {
       {items.map((item, i) => {
         const nodeSize = item.highlight ? 14 : 10
         const isLast = i === items.length - 1
+        const nodeDelay = i * V_STEP
+        const contentDelay = nodeDelay + 400
+        const connectorDelay = nodeDelay + V_POST_NODE
+        const highlightStyle: React.CSSProperties = item.highlight
+          ? { boxShadow: '0 0 0 3px rgb(var(--color-accent) / 0.25), 0 0 16px rgb(var(--color-accent) / 0.2)' }
+          : {}
+
         return (
           <div
             key={i}
-            className="grid animate-fade-up"
-            style={{ gridTemplateColumns: 'auto 1fr', animationDelay: `${i * 80}ms` }}
+            className="grid"
+            style={{ gridTemplateColumns: 'auto 1fr' }}
           >
             {/* Spine + node column */}
             <div className="flex flex-col items-center" style={{ width: '40px' }}>
               <div
-                className={item.highlight ? 'bg-accent border-2 border-accent rounded-full' : 'bg-accent rounded-full'}
-                style={{ width: nodeSize, height: nodeSize, flexShrink: 0, marginTop: '4px' }}
+                className="animate-node-pop rounded-full bg-accent"
+                style={{
+                  width: nodeSize,
+                  height: nodeSize,
+                  flexShrink: 0,
+                  marginTop: '4px',
+                  animationDelay: `${nodeDelay}ms`,
+                  ...highlightStyle,
+                }}
               />
-              {!isLast && <div className="flex-1 w-px bg-surface" style={{ minHeight: '28px' }} />}
+              {!isLast && (
+                <div
+                  className="flex-1 w-px bg-surface animate-spine-grow-v"
+                  style={{
+                    minHeight: '28px',
+                    transformOrigin: 'top center',
+                    animationDelay: `${connectorDelay}ms`,
+                    animationDuration: `${V_CONNECTOR_DUR}ms`,
+                  }}
+                />
+              )}
             </div>
 
             {/* Content column */}
-            <div className="pb-6 pl-3">
+            <div
+              className="pb-6 pl-3 animate-fade-up"
+              style={{ animationDelay: `${contentDelay}ms` }}
+            >
               <span className="font-mono text-accent" style={{ fontSize: '12px', letterSpacing: '0.1em' }}>{item.date}</span>
               <p className="font-display text-slide-text" style={{ fontSize: '18px', marginTop: '2px' }}>{item.label}</p>
               {item.description && (

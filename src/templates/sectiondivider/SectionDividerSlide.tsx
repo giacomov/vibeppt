@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { SlideBase } from '../common/SlideBase'
 import { TitleChrome } from '../common/TitleChrome'
 
 export interface SectionDividerSlideProps {
@@ -21,8 +22,8 @@ export function SectionDividerSlide({
   const hasCustomBg = !!(backgroundColor || backgroundImage)
 
   return (
-    <div
-      className="w-full h-full relative overflow-hidden flex bg-background"
+    <SlideBase
+      className="flex"
       style={{
         backgroundColor: backgroundColor || undefined,
         backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
@@ -91,6 +92,6 @@ export function SectionDividerSlide({
           </>
         )}
       </div>
-    </div>
+    </SlideBase>
   )
 }

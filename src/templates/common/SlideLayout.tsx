@@ -1,4 +1,5 @@
 import type { ReactNode, HTMLAttributes } from 'react'
+import { SlideBase } from './SlideBase'
 
 export interface SlideLayoutProps extends HTMLAttributes<HTMLDivElement> {
   header?: ReactNode
@@ -13,13 +14,13 @@ export interface SlideLayoutProps extends HTMLAttributes<HTMLDivElement> {
  */
 export function SlideLayout({ children, header, style, ...rest }: SlideLayoutProps): ReactNode {
   return (
-    <div
-      className="w-full h-full bg-background flex flex-col overflow-hidden"
+    <SlideBase
+      className="flex flex-col"
       style={{ ...style, padding: '60px 80px' }}
       {...rest}
     >
       {header && <div className="flex-shrink-0 mb-8">{header}</div>}
       {children}
-    </div>
+    </SlideBase>
   )
 }
