@@ -30,6 +30,16 @@ then open `http://localhost:3000` and ask to create a presentation about somethi
 
 You can also create presentations from a local file or folder (just say "Create a presentation from [path of the file or folder]") or from the web ("Search information about ... and then create a presentation").
 
+## Editing the presentation
+
+Once the presentation is created, just click on it. The agent will know which presentation you have selected and which slide you are seeing, so just ask for the changes you want and it will implement them for you. They will be immediately reflected in the presentation.
+
+## Seeing all available templates
+
+VibePPT use templates to save tokens and provide polished slides. You can see them by clicking on the Demo presentation and scrolling through it, or ask for a list to the agent.
+
+You can also implement one-off slides, or even your own templates, if you have visual ideas that are not supported by the existing templates. Again, just ask your agent to build them for you. It will re-use base slides and color schemes to make sure your new slide stay on-brand.
+
 ## Playing the presentation
 
 Once you have a presentation and you want to present it, just switch to a new tab and go to `http://localhost:5173` then click on your presentation. If you want, hover to the top of the first slide and click on Presenter Mode (allow pop-ups) to display speaker notes. 
