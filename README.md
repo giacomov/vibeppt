@@ -8,6 +8,32 @@
 
 An AI-native slide deck builder: prompts in, slides out. Highly customizable. 
 
+<img width="3262" height="1858" alt="image" src="https://github.com/user-attachments/assets/47d75256-6946-428b-9e70-90dce22eb44c" />
+
+# Quick start
+
+Make sure you have Claude Code installed and authenticated.
+
+Install the package and its dependencies:
+
+```shell
+> git clone https://github.com/giacomov/vibeppt.git
+> cd vibeppt
+> npm install && cd editor && npm install && cd ..
+```
+
+Run the editor:
+```
+> npm run editor
+```
+then open `http://localhost:3000` and ask to create a presentation about something.
+
+You can also create presentations from a local file or folder (just say "Create a presentation from [path of the file or folder]") or from the web ("Search information about ... and then create a presentation").
+
+# CLI mode
+
+You can also use vibeppt through Claude Code or Cursor (pre-installed):
+
 https://github.com/user-attachments/assets/bad693b2-c46b-407c-9d8a-8d16c6d073c7
 
 **Result:**
