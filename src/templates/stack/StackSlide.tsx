@@ -1,6 +1,7 @@
-import { useState, useCallback, useMemo } from 'react'
-import type { ReactNode, KeyboardEvent } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
+import type { ReactNode } from 'react'
 import { SlideLayout } from '../common/SlideLayout'
+import { useAnimationContext } from '../../contexts/AnimationContext'
 
 export interface StackItem {
   label: string
@@ -80,10 +81,27 @@ export function StackSlide({ levels, header, groups, footer, animated }: StackSl
   const schedule = useMemo(() => animated ? buildSchedule(levels) : null, [animated, levels])
   const [step, setStep] = useState(0)
 
-  const advance = useCallback(() => {
-    if (!schedule) return
+  const ctx = useAnimationContext()
+  const advanceRef = useRef<() => boolean>(() => false)
+  const retreatRef = useRef<() => boolean>(() => false)
+
+  advanceRef.current = () => {
+    if (!animated || !schedule) return false
+    if (step >= schedule.total) return false
     setStep(s => Math.min(s + 1, schedule.total))
-  }, [schedule])
+    return true
+  }
+  retreatRef.current = () => {
+    if (!animated || !schedule || step === 0) return false
+    setStep(s => Math.max(0, s - 1))
+    return true
+  }
+
+  useEffect(() => {
+    if (!animated) return
+    ctx.register({ advance: () => advanceRef.current(), retreat: () => retreatRef.current() })
+    return () => ctx.unregister()
+  }, [ctx, animated])
 
   const isVisible = (key: string) => {
     if (!animated || !schedule) return true
@@ -100,16 +118,6 @@ export function StackSlide({ levels, header, groups, footer, animated }: StackSl
   return (
     <SlideLayout
       header={header}
-      style={{ cursor: animated && schedule && step < schedule.total ? 'pointer' : undefined }}
-      role={animated ? 'button' : undefined}
-      tabIndex={animated && schedule && step < schedule.total ? 0 : -1}
-      onClick={animated ? advance : undefined}
-      onKeyDown={animated ? (e: KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          advance()
-        }
-      } : undefined}
     >
       <div className="flex-1 flex min-h-0">
         {/* Group labels column */}

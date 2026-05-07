@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -12,9 +13,14 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "editor": "concurrently --names deck,editor --prefix-colors green,cyan \"vite\" \"npm --prefix editor run dev\""
+    "test:integration": "vitest run --reporter verbose scripts/export.integration.test.mjs",
+    "editor": "concurrently --names deck,editor --prefix-colors green,cyan \"vite\" \"npm --prefix editor run dev\"",
+    "electron:dev": "NODE_ENV=development tsc -p tsconfig.electron.json && concurrently --kill-others --names vite,editor,electron --prefix-colors cyan,yellow,green \"vite --port 5173 --strictPort\" \"npm --prefix editor run dev\" \"wait-on http://localhost:5173 http://localhost:3000 && electron .\"",
+    "electron:build": "vite build && npm --prefix editor run build && tsc -p tsconfig.electron.json",
+    "electron:package": "npm run electron:build && electron-builder"
   },
   "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.128",
     "@dagrejs/dagre": "^2.0.4",
     "@xyflow/react": "^12.10.1",
     "lucide-react": "^0.577.0",
@@ -32,6 +38,9 @@
     "@vitest/coverage-v8": "^4.1.3",
     "autoprefixer": "^10.4.21",
     "canvas": "^3.2.3",
+    "concurrently": "^9.0.0",
+    "electron": "^42.0.0",
+    "electron-builder": "^26.8.1",
     "jsdom": "^29.0.2",
     "pdf-lib": "^1.17.1",
     "playwright": "^1.52.0",
@@ -39,7 +48,7 @@
     "tailwindcss": "^3.4.17",
     "typescript": "~5.8.3",
     "vite": "^6.3.5",
-    "concurrently": "^9.0.0",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.2",
+    "wait-on": "^9.0.5"
   }
 }

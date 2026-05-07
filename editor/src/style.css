@@ -556,3 +556,15 @@ body {
   opacity: 0.35;
   cursor: not-allowed;
 }
+
+/* Presentation / focus mode: expand slide to full width, hide chat */
+.layout--focus .deck-panel {
+  flex: 1;
+  border-right: none;
+}
+
+.layout--focus .chat-panel {
+  flex: 0 0 0;
+  width: 0;
+  overflow: hidden;
+}

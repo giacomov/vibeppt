@@ -95,13 +95,15 @@ function send(res: ServerResponse, event: unknown): void {
 }
 
 export function agentPlugin(): Plugin {
-  let session = newSession()
+  let session: Session | null = null
   let busy = false
 
   return {
     name: 'vibe-agent',
+    apply: 'serve',
 
     configureServer(server) {
+      session = newSession()
       server.middlewares.use('/chat', async (req: IncomingMessage, res: ServerResponse) => {
         if (req.method !== 'POST') {
           res.writeHead(405)
@@ -136,8 +138,8 @@ export function agentPlugin(): Plugin {
         activeRes = res
         busy = true
         try {
-          await session.send(fullMessage)
-          for await (const msg of session.stream()) {
+          await session!.send(fullMessage)
+          for await (const msg of session!.stream()) {
             send(res, msg)
           }
         } catch (err) {
@@ -187,7 +189,7 @@ export function agentPlugin(): Plugin {
           resolve({ behavior: 'deny', message: 'Session reset' })
           pendingPermissions.delete(id)
         }
-        session.close()
+        session!.close()
         session = newSession()
         res.writeHead(200, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ ok: true }))

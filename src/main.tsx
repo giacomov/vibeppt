@@ -16,6 +16,7 @@ import { Sun, Moon } from 'lucide-react'
 import { isExportMode } from './utils/export'
 import { toChannels, sanitizeFont, applyDefaultTokens, applyPalette, getStoredTheme, storeTheme } from './utils/theme'
 import type { ThemeMode } from './utils/theme'
+import { AnimationProvider, useAnimationContext } from './contexts/AnimationContext'
 
 const initParams = new URLSearchParams(window.location.search)
 const deckParam = initParams.get('deck')
@@ -24,6 +25,7 @@ const slideParam = initParams.get('slide')
 const inEditor = window.parent !== window
 
 function App() {
+  const animCtx = useAnimationContext()
   const [selectedDeck, setSelectedDeck] = useState<DeckEntry | null>(() =>
     deckParam ? (allDecks.find(d => d.name === deckParam) ?? null) : null
   )
@@ -37,6 +39,7 @@ function App() {
     return i
   })
   const [presenterOpen, setPresenterOpen] = useState(false)
+  const [focusMode, setFocusMode] = useState(false)
   const [themeMode, setThemeMode] = useState<ThemeMode>(getStoredTheme)
 
   useEffect(() => {
@@ -56,12 +59,16 @@ function App() {
   }, [])
 
   const handlePrev = useCallback(() => {
-    setCurrentIndex(i => Math.max(0, i - 1))
-  }, [])
+    if (!animCtx.retreat()) {
+      setCurrentIndex(i => Math.max(0, i - 1))
+    }
+  }, [animCtx])
 
   const handleNext = useCallback(() => {
-    setCurrentIndex(i => Math.min((selectedDeck?.deck.slides.length ?? 1) - 1, i + 1))
-  }, [selectedDeck?.deck.slides.length])
+    if (!animCtx.advance() && !isExportMode) {
+      setCurrentIndex(i => Math.min((selectedDeck?.deck.slides.length ?? 1) - 1, i + 1))
+    }
+  }, [animCtx, selectedDeck?.deck.slides.length])
 
   useEffect(() => {
     if (!selectedDeck) return
@@ -90,6 +97,12 @@ function App() {
     const params = new URLSearchParams({ deck: selectedDeck.name, slide: String(currentIndex) })
     history.replaceState(null, '', `?${params}`)
   }, [selectedDeck, currentIndex])
+
+  // Broadcast focus mode toggle to the editor iframe parent
+  useEffect(() => {
+    if (!inEditor) return
+    window.parent.postMessage({ type: 'vibeppt:focus-mode', active: focusMode }, '*')
+  }, [focusMode])
 
   // Broadcast current view to the editor iframe parent
   useEffect(() => {
@@ -153,29 +166,39 @@ function App() {
       <div className="fixed top-0 left-0 right-0 h-16 z-50 group">
         <button
           onClick={handleBack}
-          className={`absolute top-4 left-4 ${inEditor ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300`}
+          className={`absolute top-4 left-4 ${inEditor && !focusMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300`}
         >
           ← All decks
         </button>
         <button
           onClick={() => setThemeMode(m => m === 'light' ? 'dark' : 'light')}
-          className={`absolute top-4 left-1/2 -translate-x-1/2 ${inEditor ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} flex items-center gap-1.5 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300`}
+          className={`absolute top-4 left-1/2 -translate-x-1/2 ${inEditor && !focusMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} flex items-center gap-1.5 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300`}
           aria-label="Toggle theme"
         >
           {themeMode === 'light' ? <Moon size={12} /> : <Sun size={12} />}
           {themeMode === 'light' ? 'Dark' : 'Light'}
         </button>
-        <button
-          onClick={() => setPresenterOpen(true)}
-          disabled={presenterOpen}
-          className={`absolute top-4 right-4 ${inEditor ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent disabled:opacity-40 transition-all duration-300`}
-        >
-          Presenter View
-        </button>
+        <div className={`absolute top-4 right-4 flex items-center gap-2 ${inEditor && !focusMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-all duration-300`}>
+          {inEditor && (
+            <button
+              onClick={() => setFocusMode(m => !m)}
+              className="text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300"
+            >
+              {focusMode ? 'Show Chat' : 'Present'}
+            </button>
+          )}
+          <button
+            onClick={() => setPresenterOpen(true)}
+            disabled={presenterOpen}
+            className="text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent disabled:opacity-40 transition-all duration-300"
+          >
+            Presenter View
+          </button>
+        </div>
       </div>
       <SlideWrapper author={author} slideNumber={currentIndex + 1} totalSlides={deck.slides.length}>
         <ErrorBoundary key={currentIndex}>
-          <SlideRenderer slides={deck.slides} currentIndex={currentIndex} />
+          <SlideRenderer slides={deck.slides} currentIndex={currentIndex} onNext={handleNext} />
         </ErrorBoundary>
       </SlideWrapper>
       {presenterOpen && (
@@ -198,6 +221,8 @@ function App() {
 applyDefaultTokens()
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <AnimationProvider>
+      <App />
+    </AnimationProvider>
   </StrictMode>,
 )

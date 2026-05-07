@@ -1,115 +1,89 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen, fireEvent, act } from '@testing-library/react'
+import { render, screen, act } from '@testing-library/react'
 import { KeyTakeawaySlide } from './KeyTakeawaySlide'
 import { SectionTitle } from '../common/SlideTitle'
+import { AnimationProvider, useAnimationContext } from '../../contexts/AnimationContext'
 
 afterEach(() => {
   vi.useRealTimers()
 })
 
+// Capture advance/retreat from the provider after the slide registers its controller
+let capturedAdvance: () => boolean = () => false
+let capturedRetreat: () => boolean = () => false
+
+function ContextCapture() {
+  const ctx = useAnimationContext()
+  capturedAdvance = ctx.advance
+  capturedRetreat = ctx.retreat
+  return null
+}
+
+function renderSlide(props: { takeaways: string[]; header?: React.ReactNode }) {
+  return render(
+    <AnimationProvider>
+      <ContextCapture />
+      <KeyTakeawaySlide {...props} />
+    </AnimationProvider>
+  )
+}
+
 describe('KeyTakeawaySlide', () => {
   it('renders without crashing', () => {
-    const { container } = render(
-      <KeyTakeawaySlide takeaways={['Ship it', 'Learn fast']} />,
-    )
+    const { container } = renderSlide({ takeaways: ['Ship it', 'Learn fast'] })
     expect(container.firstChild).toBeTruthy()
   })
 
   it('renders with a header', () => {
-    render(
-      <KeyTakeawaySlide
-        takeaways={['Takeaway 1']}
-        header={<SectionTitle title="Key Points" />}
-      />,
-    )
+    renderSlide({
+      takeaways: ['Takeaway 1'],
+      header: <SectionTitle title="Key Points" />,
+    })
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Key Points')
   })
 
-  it('is initially a clickable button', () => {
-    render(
-      <KeyTakeawaySlide takeaways={['Point A', 'Point B']} />,
-    )
-    const el = screen.getByRole('button')
-    expect(el).toHaveAttribute('tabindex', '0')
+  it('advance() returns true while steps remain', () => {
+    renderSlide({ takeaways: ['Point A', 'Point B'] })
+    expect(capturedAdvance()).toBe(true)
   })
 
-  it('handles click to reveal takeaways one by one', () => {
+  it('advance() returns true during animation (isAnimating guard)', () => {
     vi.useFakeTimers()
-    render(
-      <KeyTakeawaySlide takeaways={['Takeaway One', 'Takeaway Two']} />,
-    )
-    const el = screen.getByRole('button')
-    // First click starts revealing item 0
-    fireEvent.click(el)
-    act(() => { vi.advanceTimersByTime(800) })
-
-    // Second click starts revealing item 1
-    fireEvent.click(el)
-    act(() => { vi.advanceTimersByTime(800) })
-
-    // Third click triggers final reveal
-    fireEvent.click(el)
-    expect(el).toBeTruthy()
+    renderSlide({ takeaways: ['A', 'B'] })
+    act(() => { capturedAdvance() })
+    // Animation in flight — should return true (consumed) but not double-advance
+    expect(capturedAdvance()).toBe(true)
   })
 
-  it('does not advance when animation is in progress (isAnimating guard)', () => {
+  it('advance() returns false after all items are revealed', () => {
     vi.useFakeTimers()
-    render(
-      <KeyTakeawaySlide takeaways={['A', 'B']} />,
-    )
-    const el = screen.getByRole('button')
-    // Click once — animation starts (isAnimating = true)
-    fireEvent.click(el)
-    // Click again immediately (should be ignored)
-    fireEvent.click(el)
-    // Only advance a partial timeout
-    act(() => { vi.advanceTimersByTime(300) })
-    expect(el).toBeTruthy()
-  })
-
-  it('handles keyboard Enter to advance', () => {
-    vi.useFakeTimers()
-    render(
-      <KeyTakeawaySlide takeaways={['A']} />,
-    )
-    const el = screen.getByRole('button')
-    fireEvent.keyDown(el, { key: 'Enter' })
+    renderSlide({ takeaways: ['Only one'] })
+    // Reveal item 0 (nextIdx: 0 → 1)
+    act(() => { capturedAdvance() })
     act(() => { vi.advanceTimersByTime(800) })
-    expect(el).toBeTruthy()
+    // Final reveal (nextIdx: 1 === n → nextIdx becomes n+1=2)
+    act(() => { capturedAdvance() })
+    expect(capturedAdvance()).toBe(false)
   })
 
-  it('handles keyboard Space to advance', () => {
+  it('retreat() returns false when no steps taken', () => {
+    renderSlide({ takeaways: ['A', 'B'] })
+    expect(capturedRetreat()).toBe(false)
+  })
+
+  it('retreat() returns true after advancing', () => {
     vi.useFakeTimers()
-    render(
-      <KeyTakeawaySlide takeaways={['A']} />,
-    )
-    const el = screen.getByRole('button')
-    fireEvent.keyDown(el, { key: ' ' })
+    renderSlide({ takeaways: ['A', 'B'] })
+    act(() => { capturedAdvance() })
     act(() => { vi.advanceTimersByTime(800) })
-    expect(el).toBeTruthy()
+    expect(capturedRetreat()).toBe(true)
   })
 
-  it('ignores unrelated key presses', () => {
-    render(
-      <KeyTakeawaySlide takeaways={['A']} />,
-    )
-    const el = screen.getByRole('button')
-    fireEvent.keyDown(el, { key: 'Escape' })
-    expect(el).toBeTruthy()
-  })
-
-  it('becomes non-interactive after all items are revealed', () => {
+  it('retreat() during animation is consumed without reverting', () => {
     vi.useFakeTimers()
-    render(
-      <KeyTakeawaySlide takeaways={['Only one']} />,
-    )
-    const el = screen.getByRole('button')
-    // Reveal the one takeaway
-    fireEvent.click(el)
-    act(() => { vi.advanceTimersByTime(800) })
-    // Final reveal click
-    fireEvent.click(el)
-    // After final reveal, nextIdx = n+1, so tabIndex should be -1
-    expect(el).toHaveAttribute('tabindex', '-1')
+    renderSlide({ takeaways: ['A', 'B'] })
+    act(() => { capturedAdvance() })
+    // While animation runs, retreat should return true (consumed) but do nothing
+    expect(capturedRetreat()).toBe(true)
   })
 })

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import type { ReactNode, KeyboardEvent } from 'react'
+import type { ReactNode } from 'react'
 import { SlideBase } from '../common/SlideBase'
+import { useAnimationContext } from '../../contexts/AnimationContext'
 
 // Horizontal offset % used for both left- and right-aligned slots
 const SLOT_OFFSETS = [7, 16, 5, 20, 11, 14, 8, 18]
@@ -17,6 +18,15 @@ type Phase = 'hidden' | 'dropping' | 'bright' | 'dimmed' | 'revealed'
 export interface KeyTakeawaySlideProps {
   takeaways: string[]
   header?: ReactNode
+}
+
+function computePhases(n: number, step: number): Phase[] {
+  if (step === 0) return Array(n).fill('hidden')
+  return Array(n).fill('hidden').map((_, i) => {
+    if (i < step - 1) return 'dimmed'
+    if (i === step - 1) return 'bright'
+    return 'hidden'
+  })
 }
 
 export function KeyTakeawaySlide({ takeaways, header }: KeyTakeawaySlideProps): ReactNode {
@@ -38,7 +48,6 @@ export function KeyTakeawaySlide({ takeaways, header }: KeyTakeawaySlideProps): 
       const idx = nextIdx
       setNextIdx(idx + 1)
 
-      // Dim any currently bright item, start dropping the new one
       setPhases(p => p.map((v, j) => {
         if (v === 'bright') return 'dimmed'
         if (j === idx) return 'dropping'
@@ -58,6 +67,31 @@ export function KeyTakeawaySlide({ takeaways, header }: KeyTakeawaySlideProps): 
     }
   }
 
+  // Register animation controller with context
+  const ctx = useAnimationContext()
+  const advanceRef = useRef<() => boolean>(() => false)
+  const retreatRef = useRef<() => boolean>(() => false)
+
+  advanceRef.current = () => {
+    if (isAnimating) return true
+    if (nextIdx > n) return false
+    handleClick()
+    return true
+  }
+  retreatRef.current = () => {
+    if (isAnimating) return true
+    if (nextIdx === 0) return false
+    const prevStep = nextIdx === n + 1 ? n : nextIdx - 1
+    setNextIdx(prevStep)
+    setPhases(computePhases(n, prevStep))
+    return true
+  }
+
+  useEffect(() => {
+    ctx.register({ advance: () => advanceRef.current(), retreat: () => retreatRef.current() })
+    return () => ctx.unregister()
+  }, [ctx])
+
   // Vertical distribution
   const topStart = header ? 22 : 4
   const topEnd = 96
@@ -67,18 +101,7 @@ export function KeyTakeawaySlide({ takeaways, header }: KeyTakeawaySlideProps): 
   const fontSize = FONT_SIZES[Math.min(n, 7)] ?? 32
 
   return (
-    <SlideBase
-      style={{ cursor: nextIdx <= n ? 'pointer' : 'default' }}
-      role="button"
-      tabIndex={nextIdx <= n ? 0 : -1}
-      onClick={handleClick}
-      onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          handleClick()
-        }
-      }}
-    >
+    <SlideBase>
       {header && (
         <div className="absolute top-0 left-0 right-0 z-10" style={{ padding: '56px 80px 0' }}>
           {header}

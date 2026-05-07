@@ -29,7 +29,14 @@ npm-debug.log*
 # TypeScript
 *.tsbuildinfo
 
+# Electron build artifacts
+dist-electron/
+dist-packages/
+
 # Coverage
 coverage/
+
+# Integration test scratch space
+tmp/
 
 presentations/
