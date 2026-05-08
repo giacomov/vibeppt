@@ -29,10 +29,6 @@ npm-debug.log*
 # TypeScript
 *.tsbuildinfo
 
-# Electron build artifacts
-dist-electron/
-dist-packages/
-
 # Coverage
 coverage/
 

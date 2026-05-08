@@ -64,6 +64,17 @@ export interface PermissionRequestEvent {
   explanation?: string
 }
 
+export interface FilePickerRequestEvent {
+  type: 'file_picker_request'
+  id: string
+  fileType: 'image' | 'video'
+}
+
+export interface PendingFilePicker {
+  id: string
+  fileType: 'image' | 'video'
+}
+
 export type SlideContext =
   | { screen: 'picker' }
   | { screen: 'deck'; deckName: string; deckTitle: string; slideIndex: number; slideTotal: number; slideTitle: string | null }
@@ -72,4 +83,6 @@ export type StreamEvent =
   | AssistantSDKMessage
   | ErrorEvent
   | PermissionRequestEvent
+  | FilePickerRequestEvent
   | { type: string; [key: string]: unknown }
+

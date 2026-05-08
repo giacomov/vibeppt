@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { agentPlugin } from './src/server/plugin'
 
 export default defineConfig({
   base: './',
-  plugins: [react()],
+  plugins: [react(), agentPlugin()],
   preview: {
     headers: {
       // CSP for the preview server (used by the export script).

@@ -44,8 +44,8 @@ export function ImageSlide({ src, alt, caption, position = 'center' }: ImageSlid
             <div className="flex items-end gap-5">
               <div className="w-0.5 bg-accent self-stretch" style={{ minHeight: '48px' }} />
               <p
-                className="font-body text-slide-text font-light leading-snug"
-                style={{ fontSize: '21px', maxWidth: '720px' }}
+                className="font-body font-light leading-snug"
+                style={{ fontSize: '21px', maxWidth: '720px', color: '#f5f5f5' }}
               >
                 {caption}
               </p>

@@ -8,7 +8,7 @@ interface DeckPickerProps {
 
 export function DeckPicker({ decks, onSelect }: DeckPickerProps): ReactNode {
   return (
-    <div className="min-h-screen bg-background text-text flex flex-col items-center justify-center px-8 py-16">
+    <div className="h-full bg-background text-text flex flex-col items-center justify-center px-8 py-16 overflow-y-auto">
       <header className="mb-12 text-center">
         <h1 className="font-display text-5xl font-bold text-accent mb-3">VibePPT</h1>
         <p className="text-muted font-body text-lg">Choose a presentation to begin</p>

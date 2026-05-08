@@ -22,12 +22,10 @@ Verify that I have `npm` available, and if not install it for me.
 
 Then clone the repository https://github.com/giacomov/vibeppt.
 
-Install the required dependencies with `npm install`, then also install the editor dependencies with `cd editor && npm install && cd ..`.
-
-Finally run with `npm run editor`.
+Install the required dependencies with `npm install`, then start the app with `npm run dev`.
 ```
 
-Then open `http://localhost:3000` and ask to create a presentation about something.
+Then open the URL Vite prints (by default `http://localhost:5173`) and ask to create a presentation about something.
 
 You can also create presentations from a local file or folder (just say "Create a presentation from [path of the file or folder]") or from the web ("Search information about ... and then create a presentation").
 
@@ -40,11 +38,11 @@ After implementing it, it will export each slide as an image and check for align
 ```shell
 git clone https://github.com/giacomov/vibeppt.git
 cd vibeppt
-npm install && cd editor && npm install && cd ..
-npm run editor
+npm install
+npm run dev
 ```
 
-Then open `http://localhost:3000`.
+Then open the URL Vite prints (by default `http://localhost:5173`).
 
 ## Editing the presentation
 
@@ -58,9 +56,9 @@ You can also implement one-off slides, or even your own templates, if you have v
 
 ## Playing the presentation
 
-Once you have a presentation and you want to present it, just switch to a new tab and go to `http://localhost:5173` then click on your presentation. If you want, hover to the top of the first slide and click on Presenter Mode (allow pop-ups) to display speaker notes. 
+Once you have a presentation and you want to present it, click **Present** at the top right of the slide to hide the chat panel. From there, click **Presenter View** (allow pop-ups) to open a separate window with speaker notes and navigation controls.
 
-NOTE: to edit the speaker notes, just go back to the editor and ask the agent to make the changes, OR, open your files in your favorite editor (like VS Code).
+NOTE: to edit the speaker notes, just ask the agent to make the changes, OR, open your files in your favorite editor (like VS Code).
 
 ## Exporting
 

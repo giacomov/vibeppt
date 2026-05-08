@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { lightTokens, darkTokens } from '../theme/tokens'
 
 export type ThemeMode = 'light' | 'dark'
@@ -39,11 +40,13 @@ export function sanitizeFont(font: string): string {
 }
 
 /**
- * Apply a named palette (light or dark) to :root CSS variables.
+ * Build the inline `style` object that scopes a palette to a single subtree.
+ * Used on `.slide-scope` so toggling Dark/Light only repaints the slide canvas
+ * while the surrounding UI keeps the static Light values from `:root`.
  */
-export function applyPalette(mode: ThemeMode): void {
+export function getPaletteStyle(mode: ThemeMode): CSSProperties {
   const { colors, fonts } = mode === 'dark' ? darkTokens : lightTokens
-  const root = document.documentElement
+  const style: Record<string, string> = {}
   const colorMap: [string, string][] = [
     ['--color-background', colors.background],
     ['--color-surface',    colors.surface],
@@ -53,17 +56,10 @@ export function applyPalette(mode: ThemeMode): void {
   ]
   for (const [varName, hex] of colorMap) {
     const ch = toChannels(hex)
-    if (ch) root.style.setProperty(varName, ch)
+    if (ch) style[varName] = ch
   }
-  root.style.setProperty('--font-display', sanitizeFont(fonts.display))
-  root.style.setProperty('--font-body',    sanitizeFont(fonts.body))
-  root.style.setProperty('--font-mono',    sanitizeFont(fonts.mono))
-}
-
-/**
- * Inject default theme CSS variables from tokens.ts onto :root.
- * Called once at app startup — reads stored preference from localStorage.
- */
-export function applyDefaultTokens(): void {
-  applyPalette(getStoredTheme())
+  style['--font-display'] = sanitizeFont(fonts.display)
+  style['--font-body']    = sanitizeFont(fonts.body)
+  style['--font-mono']    = sanitizeFont(fonts.mono)
+  return style as CSSProperties
 }

@@ -43,7 +43,7 @@ export function SlideWrapper({ children, author, slideNumber, totalSlides }: Sli
   const renderedHeight = effectiveHeight * scale
 
   return (
-    <div ref={containerRef} className="flex items-center justify-center w-screen h-screen bg-background">
+    <div ref={containerRef} className="flex items-center justify-center w-full h-full bg-background">
       <div
         style={{ width: renderedWidth, height: renderedHeight }}
         className={`relative overflow-hidden${hasGaps ? ' rounded-lg shadow-2xl' : ''}`}

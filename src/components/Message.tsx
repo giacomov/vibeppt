@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { FileText, FilePlus, Pencil, Terminal, Search, FolderOpen, Bot, Wrench } from 'lucide-react'
-import type { ChatMessage, ToolIcon } from './types'
+import type { ChatMessage, ToolIcon } from '../types/chat'
 
 const ICONS: Record<ToolIcon, ReactNode> = {
   read:   <FileText  size={12} />,
