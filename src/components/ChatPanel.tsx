@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import type { ReactNode, KeyboardEvent } from 'react'
-import { RotateCcw, Terminal, HelpCircle, Square, Image as ImageIcon, FileVideo } from 'lucide-react'
+import { RotateCcw, Terminal, HelpCircle, Square, Image as ImageIcon, FileVideo, Settings } from 'lucide-react'
 import type {
   ChatMessage,
   StreamEvent,
@@ -146,6 +146,28 @@ interface Props {
   slideContext: SlideContext | null
 }
 
+type ModelAlias = 'opus' | 'sonnet' | 'haiku'
+type EffortLevel = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
+
+const MODEL_OPTIONS: { value: ModelAlias; label: string }[] = [
+  { value: 'opus', label: 'Opus' },
+  { value: 'sonnet', label: 'Sonnet' },
+  { value: 'haiku', label: 'Haiku' },
+]
+
+const EFFORT_OPTIONS: { value: EffortLevel; label: string }[] = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'xhigh', label: 'Extra high' },
+  { value: 'max', label: 'Max' },
+]
+
+function readStored<T extends string>(key: string, allowed: readonly T[], fallback: T): T {
+  const v = localStorage.getItem(key)
+  return (allowed as readonly string[]).includes(v ?? '') ? (v as T) : fallback
+}
+
 export default function ChatPanel({ slideContext }: Props): ReactNode {
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     try {
@@ -161,13 +183,38 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
   const [pickerInput, setPickerInput] = useState('')
   const [pickerError, setPickerError] = useState<string | null>(null)
   const [pickerSubmitting, setPickerSubmitting] = useState(false)
+  const [model, setModel] = useState<ModelAlias>(() =>
+    readStored('vibeppt-model', MODEL_OPTIONS.map(o => o.value), 'sonnet'))
+  const [effort, setEffort] = useState<EffortLevel>(() =>
+    readStored('vibeppt-effort', EFFORT_OPTIONS.map(o => o.value), 'medium'))
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const endRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const abortRef = useRef<AbortController | null>(null)
+  const settingsRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     localStorage.setItem('vibeppt-chat', JSON.stringify(messages))
   }, [messages])
+
+  useEffect(() => {
+    localStorage.setItem('vibeppt-model', model)
+  }, [model])
+
+  useEffect(() => {
+    localStorage.setItem('vibeppt-effort', effort)
+  }, [effort])
+
+  useEffect(() => {
+    if (!settingsOpen) return
+    const onMouseDown = (e: MouseEvent) => {
+      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
+        setSettingsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onMouseDown)
+    return () => document.removeEventListener('mousedown', onMouseDown)
+  }, [settingsOpen])
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -438,7 +485,7 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
       const res = await fetch('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, context: slideContext, sessionId }),
+        body: JSON.stringify({ message: text, context: slideContext, sessionId, model, effort }),
         signal: controller.signal,
       })
 
@@ -516,7 +563,7 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
       setPickerError(null)
       setPickerSubmitting(false)
     }
-  }, [input, loading, slideContext])
+  }, [input, loading, slideContext, model, effort])
 
   const stop = useCallback(async () => {
     abortRef.current?.abort()
@@ -549,10 +596,50 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
     <>
       <header className="chat-header">
         <span className="chat-title">VibePPT</span>
-        <button className="reset-btn" onClick={() => void reset()} disabled={loading}>
-          <RotateCcw size={12} />
-          New session
-        </button>
+        <div className="chat-header-actions">
+          <div className="settings-wrapper" ref={settingsRef}>
+            <button
+              className="reset-btn settings-btn"
+              onClick={() => setSettingsOpen(o => !o)}
+              aria-label="Model settings"
+              aria-expanded={settingsOpen}
+            >
+              <Settings size={12} />
+            </button>
+            {settingsOpen && (
+              <div className="settings-popover" role="dialog">
+                <label className="settings-row">
+                  <span>Model</span>
+                  <select
+                    value={model}
+                    onChange={e => setModel(e.target.value as ModelAlias)}
+                    disabled={loading}
+                  >
+                    {MODEL_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="settings-row">
+                  <span>Effort</span>
+                  <select
+                    value={effort}
+                    onChange={e => setEffort(e.target.value as EffortLevel)}
+                    disabled={loading}
+                  >
+                    {EFFORT_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            )}
+          </div>
+          <button className="reset-btn" onClick={() => void reset()} disabled={loading}>
+            <RotateCcw size={12} />
+            New session
+          </button>
+        </div>
       </header>
 
       <div className="messages">

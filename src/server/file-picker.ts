@@ -205,5 +205,5 @@ export function createFilePickerMcpInstance(deps: FilePickerDeps) {
     name: 'vibe',
     version: '1.0.0',
     tools: [filePicker],
-  }).instance
+  })
 }

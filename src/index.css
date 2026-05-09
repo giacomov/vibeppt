@@ -97,6 +97,66 @@ body {
   cursor: not-allowed;
 }
 
+.chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.settings-wrapper {
+  position: relative;
+}
+
+.settings-btn {
+  padding: 4px 6px;
+}
+
+.settings-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  min-width: 180px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgb(var(--color-surface));
+  border: 1px solid color-mix(in srgb, rgb(var(--color-text)) 12%, transparent);
+  border-radius: 10px;
+  box-shadow: 0 6px 24px color-mix(in srgb, rgb(var(--color-text)) 12%, transparent);
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  font-family: var(--font-body);
+  color: rgb(var(--color-text));
+}
+
+.settings-row > span {
+  color: rgb(var(--color-muted));
+}
+
+.settings-row select {
+  background: transparent;
+  color: rgb(var(--color-text));
+  border: 1px solid color-mix(in srgb, rgb(var(--color-text)) 12%, transparent);
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-size: 12px;
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+.settings-row select:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* ── Messages ────────────────────────────────────────────────── */
 
 .messages {

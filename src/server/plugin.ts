@@ -1,14 +1,12 @@
-import { dirname, resolve } from 'node:path'
+import { dirname, resolve, relative, isAbsolute } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { tmpdir } from 'node:os'
-import { writeFileSync, mkdirSync, readFileSync } from 'node:fs'
+import { writeFileSync, mkdirSync, readFileSync, readdirSync } from 'node:fs'
 import { join as pathJoin, basename } from 'node:path'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Plugin } from 'vite'
-import { randomUUID } from 'node:crypto'
 import { spawn } from 'node:child_process'
-import { unstable_v2_createSession, unstable_v2_resumeSession, query } from '@anthropic-ai/claude-agent-sdk'
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
+import { query } from '@anthropic-ai/claude-agent-sdk'
 import { createFilePickerMcpInstance, type FilePickerResolver } from './file-picker'
 
 const CWD = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
@@ -17,21 +15,80 @@ type SlideContext =
   | { screen: 'picker' }
   | { screen: 'deck'; deckName: string; deckTitle: string; slideIndex: number; slideTotal: number; slideTitle: string | null }
 
-function buildContextPrefix(context: SlideContext | null | undefined): string {
-  if (!context) return ''
-  if (context.screen === 'picker') {
-    return '[Current view: deck selector screen]'
-  }
-  const { deckTitle, deckName, slideIndex, slideTotal, slideTitle } = context
-  const title = slideTitle ? ` "${slideTitle}"` : ''
-  return `[Current view: slide ${slideIndex + 1}/${slideTotal}${title} — deck "${deckTitle}" (presentations/${deckName}/)]`
-}
+const ROLE_LINE =
+  '[Role: You are running as the in-app chat agent in the VibePPT slide builder UI. ' +
+  'See the "Sandbox boundaries (in-app chat agent)" section of AGENTS.md for what you can and cannot do.]'
 
-type Session = ReturnType<typeof unstable_v2_createSession>
+function buildContextPrefix(context: SlideContext | null | undefined): string {
+  const lines: string[] = [ROLE_LINE]
+  if (context) {
+    if (context.screen === 'picker') {
+      lines.push('[Current view: deck selector screen]')
+    } else {
+      const { deckTitle, deckName, slideIndex, slideTotal, slideTitle } = context
+      const title = slideTitle ? ` "${slideTitle}"` : ''
+      lines.push(
+        `[Current view: slide ${slideIndex + 1}/${slideTotal}${title} — deck "${deckTitle}" (presentations/${deckName}/)]`,
+      )
+    }
+  }
+  return lines.join('\n')
+}
 
 type CanUseToolResult =
   | { behavior: 'allow'; updatedInput: Record<string, unknown> }
   | { behavior: 'deny'; message: string }
+
+const FS_WRITE_TOOLS = new Set(['Write', 'Edit', 'MultiEdit', 'NotebookEdit'])
+
+// Returns null when the tool is not a tracked file-write tool. Otherwise
+// allow when the target path is inside the active sandbox (the active deck
+// folder, or the presentations/ root if no deck is active), deny otherwise.
+// Symlinks are intentionally not resolved — the threat model is the agent
+// itself, and realpath on a not-yet-created Write target would fail anyway.
+export function fileWriteSandboxDecision(
+  toolName: string,
+  input: Record<string, unknown>,
+  cwd: string,
+  deckName: string | null,
+): { behavior: 'allow' } | { behavior: 'deny'; message: string } | null {
+  if (!FS_WRITE_TOOLS.has(toolName)) return null
+  const raw = input.file_path ?? input.notebook_path
+  if (typeof raw !== 'string') {
+    return { behavior: 'deny', message: `${toolName}: missing file_path.` }
+  }
+  const root = deckName
+    ? resolve(cwd, 'presentations', deckName)
+    : resolve(cwd, 'presentations')
+  const abs = resolve(cwd, raw)
+  const rel = relative(root, abs)
+  const inside = rel === '' || (!rel.startsWith('..') && !isAbsolute(rel))
+  if (!inside) {
+    const rootLabel = relative(cwd, root) || '.'
+    return {
+      behavior: 'deny',
+      message: `Sandboxed: ${toolName} can only write inside ${rootLabel}/. Refusing write to ${raw}.`,
+    }
+  }
+  return { behavior: 'allow' }
+}
+
+export function isAutoApprovedBash(command: string): boolean {
+  const cmd = command.trim()
+  if (/\brm\b/.test(cmd)) return false
+  let lhs = cmd
+  const pipeIdx = cmd.search(/(?<!\|)\|(?!\|)/)
+  if (pipeIdx >= 0) {
+    const rhs = cmd.slice(pipeIdx + 1).trim()
+    if (!/^(head|tail)(\s+[\w\s-]+)?$/.test(rhs)) return false
+    lhs = cmd.slice(0, pipeIdx).trim()
+  }
+  if (!/^(npm\s+run|ls)(\s|$)/.test(lhs)) return false
+  if (/[;`\n\r]|\$\(|&&|\|\|/.test(lhs)) return false
+  if (/(?<!\|)\|(?!\|)/.test(lhs)) return false
+  if (/(?<!>)&(?![&>])/.test(lhs)) return false
+  return true
+}
 
 async function explainBashCommand(command: string): Promise<string> {
   const chunks: string[] = []
@@ -61,40 +118,80 @@ const pendingPermissions = new Map<string, (result: CanUseToolResult) => void>()
 const pendingFilePickers = new Map<string, FilePickerResolver>()
 let permissionCounter = 0
 let currentDeckName: string | null = null
-let agentPort: number | null = null
+let currentAbortController: AbortController | null = null
 
-const filePickerMcp = createFilePickerMcpInstance({
+const filePickerServer = createFilePickerMcpInstance({
   getActiveRes: () => activeRes,
   getDeckName: () => currentDeckName,
   getCwd: () => CWD,
   sendEvent: (res: ServerResponse, event) => send(res, event),
   pendingFilePickers,
 })
-const mcpTransport = new StreamableHTTPServerTransport({ sessionIdGenerator: () => randomUUID() })
-const mcpReady = filePickerMcp.connect(mcpTransport)
 
-type SessionOptions = Parameters<typeof unstable_v2_createSession>[0]
+type QueryOptions = NonNullable<Parameters<typeof query>[0]['options']>
 
-function sessionOptions(): SessionOptions {
-  const port = agentPort ?? 5173
-  const mcpConfig = JSON.stringify({
-    mcpServers: {
-      vibe: {
-        type: 'http',
-        url: `http://localhost:${port}/mcp/vibe`,
-        alwaysLoad: true,
+export type EffortLevel = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
+export type ModelAlias = 'opus' | 'sonnet' | 'haiku'
+
+export const DEFAULT_MODEL: ModelAlias = 'sonnet'
+export const DEFAULT_EFFORT: EffortLevel = 'medium'
+
+// Enumerate sibling deck directories so we can hard-deny bash writes to them.
+// Returns [] when no deck is active or presentations/ doesn't exist.
+function siblingDeckPaths(activeDeck: string | null): string[] {
+  if (!activeDeck) return []
+  const presentationsDir = resolve(CWD, 'presentations')
+  try {
+    return readdirSync(presentationsDir, { withFileTypes: true })
+      .filter(e => e.isDirectory() && e.name !== activeDeck)
+      .map(e => resolve(presentationsDir, e.name))
+  } catch {
+    return []
+  }
+}
+
+function buildOptions(model: ModelAlias, effort: EffortLevel): QueryOptions {
+  return {
+    model,
+    effort,
+    cwd: CWD,
+    permissionMode: 'default',
+    settingSources: ['project', 'local'],
+    executableArgs: ['--plugin-dir', resolve(CWD, '.agents')],
+    mcpServers: { vibe: filePickerServer },
+    // OS-level sandbox for bash. Two layers:
+    //   1. Repo-wide write boundary: bash can write anywhere inside CWD,
+    //      nothing outside. Blocks ~ / /etc / other system paths.
+    //   2. Per-request denyWrite: when a deck is active, sibling deck
+    //      directories are removed from the writable set so bash can't
+    //      delete or modify other decks even within the repo.
+    // `autoAllowBashIfSandboxed: false` keeps bash flowing through
+    // canUseTool (otherwise the SDK silently auto-approves any sandboxed
+    // bash, including `rm -rf <inside-cwd>`).
+    sandbox: {
+      enabled: true,
+      failIfUnavailable: true,
+      autoAllowBashIfSandboxed: false,
+      allowUnsandboxedCommands: false,
+      filesystem: {
+        allowWrite: [CWD],
+        denyWrite: siblingDeckPaths(currentDeckName),
       },
     },
-  })
-  const options = {
-    model: 'claude-opus-4-7',
-    cwd: CWD,
-    permissionMode: 'default' as const,
-    settingSources: ['project', 'local'] as Array<'project' | 'local'>,
-    executableArgs: ['--plugin-dir', resolve(CWD, '.agents'), '--mcp-config', mcpConfig],
-    allowedTools: ['Read', 'Edit', 'Write', 'Glob', 'Grep', 'AskUserQuestion', 'Agent', 'Skill', 'TodoWrite', 'mcp__vibe__file_picker'],
+    allowedTools: ['Read', 'Glob', 'Grep', 'AskUserQuestion', 'Agent', 'Skill', 'TodoWrite', 'mcp__vibe__file_picker'],
     canUseTool: async (toolName: string, input: Record<string, unknown>): Promise<CanUseToolResult> => {
+      // File-write sandbox runs before the !activeRes bypass so internal
+      // queries (e.g. explainBashCommand) can never silently escape it.
+      const fsDecision = fileWriteSandboxDecision(toolName, input, CWD, currentDeckName)
+      if (fsDecision) {
+        return fsDecision.behavior === 'allow'
+          ? { behavior: 'allow', updatedInput: input }
+          : fsDecision
+      }
       if (!activeRes) {
+        return { behavior: 'allow', updatedInput: input }
+      }
+      if (toolName === 'Bash' && isAutoApprovedBash(String(input.command ?? ''))) {
         return { behavior: 'allow', updatedInput: input }
       }
       let explanation: string | undefined
@@ -110,15 +207,6 @@ function sessionOptions(): SessionOptions {
       })
     },
   }
-  return options as SessionOptions
-}
-
-function newSession(): Session {
-  return unstable_v2_createSession(sessionOptions())
-}
-
-function resumeSession(sessionId: string): Session {
-  return unstable_v2_resumeSession(sessionId, sessionOptions())
 }
 
 function readBody(req: IncomingMessage): Promise<string> {
@@ -135,10 +223,10 @@ function send(res: ServerResponse, event: unknown): void {
 }
 
 export function agentPlugin(): Plugin {
-  let session: Session | null = null
   let busy = false
-  // Last session ID seen on the wire — used to resume after a Stop so the
-  // agent's prior memory is preserved. Updated on every streamed message.
+  // Last session ID seen on the wire — used to resume so the agent's prior
+  // memory is preserved across HTTP requests, page refreshes, and Stops.
+  // Updated on every streamed message.
   let lastSessionId: string | null = null
 
   return {
@@ -146,29 +234,6 @@ export function agentPlugin(): Plugin {
     apply: 'serve',
 
     configureServer(server) {
-      // Capture Vite's resolved port; the file-picker MCP server URL embedded
-      // in --mcp-config needs it. Read synchronously if already listening,
-      // otherwise wait for the listening event.
-      const captureAddr = (): void => {
-        const addr = server.httpServer?.address()
-        if (addr && typeof addr === 'object') agentPort = addr.port
-      }
-      captureAddr()
-      server.httpServer?.once('listening', captureAddr)
-
-      server.middlewares.use('/mcp/vibe', async (req: IncomingMessage, res: ServerResponse) => {
-        try {
-          await mcpReady
-          const parsedBody = req.method === 'POST' ? JSON.parse(await readBody(req)) : undefined
-          await mcpTransport.handleRequest(req, res, parsedBody)
-        } catch (err) {
-          if (!res.headersSent) {
-            res.writeHead(500, { 'Content-Type': 'application/json' })
-            res.end(JSON.stringify({ error: String(err) }))
-          }
-        }
-      })
-
       server.middlewares.use('/chat', async (req: IncomingMessage, res: ServerResponse) => {
         if (req.method !== 'POST') {
           res.writeHead(405)
@@ -182,7 +247,13 @@ export function agentPlugin(): Plugin {
           return
         }
 
-        let body: { message: string; context?: SlideContext; sessionId?: string | null }
+        let body: {
+          message: string
+          context?: SlideContext
+          sessionId?: string | null
+          model?: ModelAlias
+          effort?: EffortLevel
+        }
         try {
           body = JSON.parse(await readBody(req)) as typeof body
         } catch {
@@ -201,24 +272,38 @@ export function agentPlugin(): Plugin {
         const fullMessage = prefix ? `${prefix}\n\n${body.message}` : body.message
         currentDeckName = body.context?.screen === 'deck' ? body.context.deckName : null
 
+        const wantedModel: ModelAlias = body.model ?? DEFAULT_MODEL
+        const wantedEffort: EffortLevel = body.effort ?? DEFAULT_EFFORT
+
         activeRes = res
         busy = true
+        const controller = new AbortController()
+        currentAbortController = controller
         try {
-          if (!session) {
-            // Resume from the client-supplied session id when available so
-            // refreshing the page or restarting Vite preserves the agent's
-            // memory of prior turns. Falls back to a fresh session.
-            session = body.sessionId ? resumeSession(body.sessionId) : newSession()
-          }
-          await session.send(fullMessage)
-          for await (const msg of session.stream()) {
+          // Resume from the last seen session id when available; fall back to
+          // the client-supplied id (so a page refresh or Vite restart
+          // reattaches), then to undefined for a fresh session.
+          const resume = lastSessionId ?? body.sessionId ?? undefined
+          const q = query({
+            prompt: fullMessage,
+            options: {
+              ...buildOptions(wantedModel, wantedEffort),
+              resume,
+              abortController: controller,
+            },
+          })
+          for await (const msg of q) {
             const sid = (msg as { session_id?: string }).session_id
             if (sid) lastSessionId = sid
             send(res, msg)
           }
         } catch (err) {
-          send(res, { type: 'error', message: String(err) })
+          // Aborts from /stop are expected — don't surface them as errors.
+          if (!controller.signal.aborted) {
+            send(res, { type: 'error', message: String(err) })
+          }
         } finally {
+          if (currentAbortController === controller) currentAbortController = null
           busy = false
           activeRes = null
         }
@@ -341,8 +426,8 @@ export function agentPlugin(): Plugin {
           resolve(null)
           pendingFilePickers.delete(id)
         }
-        session?.close()
-        session = null
+        currentAbortController?.abort()
+        currentAbortController = null
         lastSessionId = null
         res.writeHead(200, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ ok: true }))
@@ -411,10 +496,8 @@ export function agentPlugin(): Plugin {
         res.end(pdfBytes)
       })
 
-      // Interrupt the current turn while preserving the agent's memory.
-      // Close the in-flight session, then resume from its last sessionId so
-      // prior turns stay in the agent's context. Falls back to a fresh session
-      // if no sessionId has been observed yet.
+      // Interrupt the current turn while preserving the agent's memory. The
+      // next /chat will resume from lastSessionId so prior context is intact.
       server.middlewares.use('/stop', (_req: IncomingMessage, res: ServerResponse) => {
         for (const [id, resolve] of pendingPermissions) {
           resolve({ behavior: 'deny', message: 'User stopped the run' })
@@ -424,8 +507,7 @@ export function agentPlugin(): Plugin {
           resolve(null)
           pendingFilePickers.delete(id)
         }
-        session?.close()
-        session = lastSessionId ? resumeSession(lastSessionId) : null
+        currentAbortController?.abort()
         res.writeHead(200, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ ok: true }))
       })

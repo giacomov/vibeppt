@@ -190,6 +190,121 @@ Author info is optionally loaded from `presentations/*/author/author.json`. Deck
 
 Any looping animation must detect `isExportMode` (from `src/utils/export.ts`) and stop after its first full cycle.
 
+## Chat Agent & Sandbox
+
+The in-app chat agent is hosted by a Vite plugin
+([`src/server/plugin.ts`](../src/server/plugin.ts)) that runs only during
+`npm run dev`. Each `/chat` POST is one user turn: the plugin calls the
+Claude Agent SDK's `query()` with `resume: lastSessionId` so multi-turn
+context carries across HTTP requests, page refreshes, and Stop/Reset
+actions. There is no persistent session object — interruption is via
+`AbortController` on `options.abortController`; reset clears
+`lastSessionId`.
+
+The agent operates inside two complementary sandbox layers. Together they
+constrain everything the agent can write to disk; reads are intentionally
+left open so the agent can navigate `src/templates/`, `src/theme/`,
+`CLAUDE.md`, etc.
+
+### Layer 1 — File-write sandbox (`canUseTool`)
+
+`Write`, `Edit`, `MultiEdit`, and `NotebookEdit` are removed from
+`allowedTools` so the SDK routes them through the `canUseTool` callback.
+Before any other check, `fileWriteSandboxDecision()` resolves the
+proposed `file_path` (or `notebook_path`) against the active sandbox
+root:
+
+| Active deck (`currentDeckName`)        | Sandbox root                            |
+| -------------------------------------- | --------------------------------------- |
+| Set (a deck is open in the UI)         | `presentations/<currentDeckName>/`      |
+| Null (deck picker / no deck open)      | `presentations/`                        |
+
+Paths inside the root are auto-allowed (no user prompt). Paths outside
+return `behavior: 'deny'` and the agent receives the deny message in
+its tool result, so it sees the failure and can react. The check uses
+`path.resolve` + `path.relative` and does **not** call `fs.realpathSync`
+— symlink-based escape is out of scope (the threat model is the agent
+itself, not adversarial filesystem state, and the target may not exist
+yet for a fresh `Write`).
+
+The check runs **before** the `if (!activeRes) return allow` shortcut
+that exists for the in-process `explainBashCommand` query, so internal
+SDK flows can't bypass the sandbox either.
+
+`mcp__vibe__file_picker` stays in `allowedTools` because its handler
+hard-codes the destination to `presentations/<deckName>/assets/` and
+refuses to run when no deck is open
+([`src/server/file-picker.ts`](../src/server/file-picker.ts)) — it's
+sandbox-safe by construction.
+
+### Layer 2 — Bash OS sandbox (SDK `SandboxSettings`)
+
+Bash containment uses the v1 SDK's built-in OS sandbox (macOS Seatbelt,
+Linux bubblewrap) configured on `options.sandbox`:
+
+```ts
+sandbox: {
+  enabled: true,
+  failIfUnavailable: true,
+  autoAllowBashIfSandboxed: false,
+  allowUnsandboxedCommands: false,
+  filesystem: {
+    allowWrite: [CWD],
+    denyWrite: siblingDeckPaths(currentDeckName),
+  },
+}
+```
+
+Each field carries weight:
+
+- `enabled: true` activates the OS sandbox on every `query()` call.
+- `failIfUnavailable: true` makes a missing sandbox a hard error
+  instead of a silent fallback to unsandboxed execution.
+- `autoAllowBashIfSandboxed: false` is **load-bearing**. The default
+  sandbox mode is "auto-allow": any bash command whose effects fit
+  inside the sandbox boundary runs without firing `canUseTool`. That
+  default would let `rm -rf <inside-cwd>` execute silently. Setting
+  this to `false` puts every bash command back through `canUseTool`,
+  which means the auto-approve allowlist (`npm run`, `ls`) and
+  `explainBashCommand` + user-approval prompt all keep working.
+- `allowUnsandboxedCommands: false` ignores any
+  `dangerouslyDisableSandbox` parameter the agent might attach to a
+  Bash call. Without this, the agent could opt out of the sandbox on a
+  per-command basis.
+- `filesystem.allowWrite: [CWD]` is the outer write boundary — bash can
+  write anywhere inside the repo, nothing outside.
+- `filesystem.denyWrite: siblingDeckPaths(currentDeckName)` is the
+  inner boundary. `siblingDeckPaths()` enumerates every directory under
+  `presentations/` except the active deck and returns those absolute
+  paths. The OS sandbox then blocks writes/creates/deletes/renames in
+  any of them, even if `canUseTool` would allow the command. This
+  catches `rm -rf presentations/<other-deck>` and similar
+  cross-deck-write attempts at the OS level. Reads from other decks
+  are intentionally not blocked (we don't set `denyRead`), so
+  `cp presentations/<other-deck>/foo.tsx presentations/<active>/` and
+  similar "look at how I did it over there" workflows still function.
+
+The deny list is computed fresh inside `buildOptions` on every `/chat`
+request, so deck switches and new decks created mid-conversation are
+picked up immediately.
+
+Bash auto-approval (`isAutoApprovedBash`: `npm run`, `ls`, with safe
+pipes/redirects) and the user-prompt path for non-allowlisted commands
+are unchanged — those are UX layers on top of the sandbox.
+
+### Things explicitly outside the sandbox model
+
+- **Read tools** (`Read`, `Glob`, `Grep`) — agent must navigate the
+  codebase to do its job.
+- **Symlink-based escape** — not resolved; threat model excludes
+  adversarial filesystem state.
+- **The export pipeline** (`/export`) — runs `scripts/export-slides.mjs`
+  in a separate child process, not under the SDK sandbox. It writes to
+  `exports/` (inside CWD) by design.
+- **Other tools (Claude Code CLI, Cursor, etc.)** running against this
+  repo — they have their own permission models. The sandbox configured
+  here applies only to the agent hosted by the Vite plugin.
+
 ## Vite & CSP
 
 `vite.config.ts` sets strict Content Security Policy headers for the preview server:

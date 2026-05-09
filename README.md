@@ -64,6 +64,24 @@ NOTE: to edit the speaker notes, just ask the agent to make the changes, OR, ope
 
 Just ask the agent to export the presentation (PDF or PNGs are supported).
 
+## Safety & sandboxing
+
+The chat agent in the VibePPT UI runs with an active sandbox that limits what it can touch on your machine:
+
+- **File edits** are restricted to the active deck's folder under `presentations/`. If no deck is open, the agent can only create/edit files inside `presentations/`. It cannot edit anything in `src/`, your home folder, or anywhere else on disk.
+- **Shell commands** (anything the agent runs through `bash`) are sandboxed at the OS level. They cannot write outside the project, and — when a deck is open — they cannot delete or modify any other deck's folder either. Attempts to escape are blocked by the operating system, not by a heuristic, so an agent cannot trick its way out by obfuscating a command.
+- Every shell command that isn't a known-safe one (e.g. `npm run …`, `ls`) **prompts you for approval** before running, with a plain-English explanation of what it will do.
+- The agent **cannot disable its own sandbox**, even if it tries.
+
+> [!IMPORTANT]
+> This sandbox is a meaningful safety net, but it is **not a guarantee**. It does not protect against:
+> - Approving destructive operations yourself when the agent asks (e.g. accepting a permission prompt for a command you didn't read carefully).
+> - Bugs in the sandbox or the underlying OS isolation.
+> - The agent making bad changes _inside_ the allowed scope (e.g. corrupting a deck you care about — keep your work in version control).
+> - Anything that happens when you run the agent in **other tools** (Claude Code CLI, Cursor, etc.) outside the VibePPT UI — those have their own permission models.
+>
+> You are still responsible for reviewing what the agent does. **The authors of VibePPT assume no liability for any damage caused by the agent**, sandboxed or not. Treat it like any other automated tool: keep backups, use version control, and don't run it on machines you can't afford to recover.
+
 ---
 
 # Use Claude Code or Cursor directly

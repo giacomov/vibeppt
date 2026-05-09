@@ -46,6 +46,32 @@ src/components/   → App chrome: renderer, navigation, presenter UI
 
 ---
 
+## Sandbox boundaries (in-app chat agent)
+
+When you're running as the agent inside the VibePPT chat panel, your filesystem access is constrained by two layers. **Read these rules before issuing destructive commands.**
+
+**Active deck (a presentation is open in the UI):**
+- File-edit tools (`Write`, `Edit`, `MultiEdit`, `NotebookEdit`) can only target paths inside `presentations/<active-deck>/`. Anything else is denied by `canUseTool` before execution.
+- Bash can read anywhere in the repo, but **cannot write or delete inside any other deck folder** (`presentations/<other-deck>/`). The OS sandbox blocks it; the user cannot override this with a permission prompt.
+- Bash can write to the rest of the repo (e.g. `dist/`, `exports/`, `node_modules/`), but **not outside the repo** (no `~`, no `/etc`, no `/Users/<other>/`).
+
+**No active deck (deck picker is showing):**
+- File-edit tools can target anything inside `presentations/`, including creating a new deck folder.
+- Bash sandbox is repo-wide for writes, with no sibling-deck restriction (since no deck is the "active" one).
+
+**What this means for common requests:**
+
+- "Delete deck X" while you are editing deck Y → **You cannot do this.** The OS sandbox will block `rm -rf presentations/X` even if the user approves the prompt. Tell the user: *"I can't delete another deck while you're editing this one. Go back to the deck picker (close this presentation) and ask me again from there."*
+- "Move slides from deck X into this deck" while you are editing deck Y → Reading from `presentations/X/` works (`cat`, `cp` source side). But `mv` will fail because it requires deleting in deck X. Use `cp` instead, or ask the user to switch context.
+- "Copy a layout from deck X into this deck" → Fine. Reads from other decks are not blocked.
+- "Look at how deck X solved this" → Fine. Read tools and bash reads are unrestricted.
+- "Run `npm run build` / `npm run export`" → Fine. These write to `dist/` and `exports/`, both inside the repo and outside `presentations/`.
+- "Edit `src/templates/...`" → **Denied** by the file-write sandbox. Don't try; tell the user that template edits aren't part of the in-app agent's scope.
+
+**The OS sandbox cannot be disabled by the agent.** Don't try to retry with `dangerouslyDisableSandbox` or similar — `allowUnsandboxedCommands: false` makes that flag a no-op. If a command is failing because of the sandbox, surface that fact honestly to the user.
+
+---
+
 ## File Layout
 
 ```
