@@ -87,15 +87,17 @@ describe('FlowSlide (editMode)', () => {
     expect(screen.getByRole('button', { name: /copy positions/i })).toBeInTheDocument()
   })
 
-  it('falls back to console.log when clipboard is unavailable', async () => {
+  it('swallows clipboard rejection silently', async () => {
     vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('denied'))
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     render(<FlowSlide nodes={nodes} edges={edges} editMode />)
 
     const btn = screen.getByRole('button', { name: /copy positions/i })
     fireEvent.click(btn)
 
     await act(async () => { await Promise.resolve() }) // flush rejection
-    expect(consoleSpy).toHaveBeenCalled()
+    expect(consoleSpy).not.toHaveBeenCalled()
+    expect(errorSpy).not.toHaveBeenCalled()
   })
 })

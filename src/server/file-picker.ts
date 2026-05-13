@@ -1,8 +1,11 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import type { ChildProcess } from 'node:child_process'
 import { tool, createSdkMcpServer } from '@anthropic-ai/claude-agent-sdk'
 import type { ServerResponse } from 'node:http'
 import { z } from 'zod'
+import { createExportSlidesTool } from './export-tool'
+import { createCreateDeckTool } from './create-deck-tool'
 
 export interface FilePickerRequest {
   type: 'file_picker_request'
@@ -20,9 +23,14 @@ export type FilePickerResolver = (result: FilePickerResult) => void
 export interface FilePickerDeps {
   getActiveRes: () => ServerResponse | null
   getDeckName: () => string | null
+  setDeckName: (name: string) => void
   getCwd: () => string
+  getVitePort: () => number | null
   sendEvent: (res: ServerResponse, event: FilePickerRequest) => void
+  sendDeckOpened: (deckName: string) => void
   pendingFilePickers: Map<string, FilePickerResolver>
+  exportInFlight: Set<string>
+  registerExportChild: (child: ChildProcess) => () => void
 }
 
 const IMAGE_EXTS = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'] as const
@@ -45,7 +53,7 @@ function nextId(): string {
   return `fp-${++counter}`
 }
 
-function pickDestinationFilename(assetsDir: string, sourceName: string): string {
+export function pickDestinationFilename(assetsDir: string, sourceName: string): string {
   const base = path.basename(sourceName)
   const ext = path.extname(base)
   const stem = ext ? base.slice(0, -ext.length) : base
@@ -58,7 +66,7 @@ function pickDestinationFilename(assetsDir: string, sourceName: string): string 
   return candidate
 }
 
-function formatSavedMessage(relPath: string, destPath: string): string {
+export function formatSavedMessage(relPath: string, destPath: string): string {
   const filename = path.basename(destPath)
   const stem = filename.replace(/\.[^./]+$/, '')
   const varName = (stem.replace(/[^a-zA-Z0-9_$]/g, '_').replace(/^[0-9]/, '_$&') || 'asset') + 'Url'
@@ -71,7 +79,7 @@ function formatSavedMessage(relPath: string, destPath: string): string {
   )
 }
 
-function copyLocalPath(sourcePath: string, assetsDir: string): { relPath: string; destPath: string } {
+export function copyLocalPath(sourcePath: string, assetsDir: string): { relPath: string; destPath: string } {
   fs.mkdirSync(assetsDir, { recursive: true })
   const destFilename = pickDestinationFilename(assetsDir, sourcePath)
   const destPath = path.join(assetsDir, destFilename)
@@ -79,7 +87,7 @@ function copyLocalPath(sourcePath: string, assetsDir: string): { relPath: string
   return { relPath: `./assets/${destFilename}`, destPath }
 }
 
-async function fetchUrlToAssets(
+export async function fetchUrlToAssets(
   url: string,
   fileType: 'image' | 'video',
   assetsDir: string,
@@ -190,8 +198,19 @@ export function createFilePickerMcpInstance(deps: FilePickerDeps) {
         }
 
         // result.kind === 'url'
-        const { relPath, destPath } = await fetchUrlToAssets(result.url, args.file_type, assetsDir)
-        return { content: [{ type: 'text', text: formatSavedMessage(relPath, destPath) }] }
+        try {
+          const { relPath, destPath } = await fetchUrlToAssets(result.url, args.file_type, assetsDir)
+          return { content: [{ type: 'text', text: formatSavedMessage(relPath, destPath) }] }
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err)
+          return {
+            content: [{
+              type: 'text',
+              text: `Failed to fetch URL: ${msg}\n\nThis usually means the URL requires authentication (e.g. ChatGPT, Claude, or Gemini generator URLs). Ask the user to either:\n  • Right-click the image and choose "Copy image", then click Paste (or press ⌘V) in the file picker, OR\n  • Save the image to disk and drag the file in, OR\n  • Paste a publicly accessible image URL.`,
+            }],
+            isError: true,
+          }
+        }
       } catch (err) {
         return {
           content: [{ type: 'text', text: `Failed to save file: ${err instanceof Error ? err.message : String(err)}` }],
@@ -201,9 +220,23 @@ export function createFilePickerMcpInstance(deps: FilePickerDeps) {
     },
   )
 
+  const exportSlides = createExportSlidesTool({
+    getCwd: deps.getCwd,
+    getDeckName: deps.getDeckName,
+    getVitePort: deps.getVitePort,
+    inFlight: deps.exportInFlight,
+    registerChild: deps.registerExportChild,
+  })
+
+  const createDeck = createCreateDeckTool({
+    getCwd: deps.getCwd,
+    setDeckName: deps.setDeckName,
+    emitDeckOpened: deps.sendDeckOpened,
+  })
+
   return createSdkMcpServer({
     name: 'vibe',
     version: '1.0.0',
-    tools: [filePicker],
+    tools: [filePicker, exportSlides, createDeck],
   })
 }

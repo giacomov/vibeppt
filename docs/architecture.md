@@ -173,10 +173,9 @@ export default MySlide
 
 `src/decks.ts` scans for decks at startup using Vite's `import.meta.glob`:
 
-- `presentations/*/deck.ts` → user presentations
-- `demos/*/deck.ts` → demo presentations
+- `presentations/**/deck.ts` → all decks (user decks, plus the template showcase under `presentations/demos/`)
 
-Author info is optionally loaded from `presentations/*/author/author.json`. Decks are sorted alphabetically by title and presented in the dashboard.
+Each deck's `name` is its full subpath under `presentations/` (e.g. `work/pitch` or `demos/demo`), which doubles as a unique identifier and is preserved in the URL (`?deck=work---pitch` — slashes are swapped for `---` at the URL boundary only). Author info is optionally loaded from `presentations/**/author/author.json`. Decks are sorted alphabetically by title; the dashboard renders the on-disk folder hierarchy as a Finder-style tree.
 
 ## Export Pipeline
 
@@ -194,7 +193,7 @@ Any looping animation must detect `isExportMode` (from `src/utils/export.ts`) an
 
 The in-app chat agent is hosted by a Vite plugin
 ([`src/server/plugin.ts`](../src/server/plugin.ts)) that runs only during
-`npm run dev`. Each `/chat` POST is one user turn: the plugin calls the
+`npm start`. Each `/chat` POST is one user turn: the plugin calls the
 Claude Agent SDK's `query()` with `resume: lastSessionId` so multi-turn
 context carries across HTTP requests, page refreshes, and Stop/Reset
 actions. There is no persistent session object — interruption is via

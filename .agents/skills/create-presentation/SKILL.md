@@ -166,7 +166,7 @@ Read this section before starting Step 5. It defines all canonical patterns for 
 4. **Use `SectionTitle` or `SubsectionTitle` for slide headers.** Never use `HeroTitle` in a content slide — it is only for `TitleSlide` openers and is far too large.
 5. **No magic hex strings.** Use only Tailwind token classes: `bg-background`, `bg-surface`, `bg-accent`, `text-slide-text`, `text-muted`, `font-display`, `font-body`, `font-mono`, `px-slide-x`, `py-slide-y`.
 6. **Import paths from `presentations/[deck]/` always start with `../../src/`.**
-7. **Icons: always Lucide React.** `import { X } from 'lucide-react'`, `size={22}`, never emoji strings (except `PrismSlide` icon fields, which explicitly accept both).
+7. **Icons: always Lucide React.** `import { X } from 'lucide-react'`, `size={22}`. Never pass unicode glyphs (✓, ★, →, ⚙, …) or emoji as icons — they don't inherit token colors and render unreliably in the exporter. Every template's icon prop expects a `ReactNode`.
 8. **`example.tsx` is your reference.** Each template folder has one — a fully filled-in usage model. Read it, copy from it, never render it.
 
 ### Creating a Slide
@@ -200,6 +200,8 @@ export default MySlide
 - Never import from `example.tsx` files — they are references, not components.
 
 ### Creating a Deck
+
+> The in-app agent does NOT scaffold `deck.ts` with `Write`. Step 5 calls `mcp__vibe__create_deck` to create the folder, write `deck.ts` (with `slides: []`), and open the deck in the panel. The shapes below document the resulting files — the agent then writes the slide files and edits the generated `deck.ts` to import them.
 
 **1. Title slide (`presentations/my-deck/title.tsx`):**
 
@@ -292,7 +294,7 @@ export default MySlide
 
 ### Export Mode
 
-Slides are exported via `npm run export`. The exporter fast-forwards all JS timers, then snaps CSS/WAAPI animations to their final state.
+Slides are exported via the `mcp__vibe__export_slides` MCP tool (or `npm run export` from a user's terminal). The exporter fast-forwards all JS timers, then snaps CSS/WAAPI animations to their final state.
 
 **Any looping `setTimeout`/`setInterval` animation MUST stop after its first full reveal when `isExportMode` is true**, otherwise the animation lands mid-cycle and produces a blank screenshot.
 
@@ -318,7 +320,16 @@ One-shot animations (run once, no reset) need no change.
 
 ## Step 5 — Implement slides
 
-Create a task list with one task per slide file plus one task for `deck.ts`. Mark dependencies (all slide tasks must complete before `deck.ts`). Execute all slide tasks in parallel, then create `deck.ts`.
+**5a. Scaffold the deck.** Before writing any slide files, call the `mcp__vibe__create_deck` MCP tool with:
+- `name`: the kebab-case folder name chosen in Step 3
+- `title`: the human-readable deck title
+- `accent`: the chosen hex color (optional)
+
+This writes `presentations/<name>/deck.ts` with an empty `slides: []` and opens the deck in the panel. After it returns, the active deck is set — `mcp__vibe__file_picker` and `mcp__vibe__export_slides` will work without further user action.
+
+Do NOT use the `Write` tool to scaffold `deck.ts` yourself: the panel would stay on the picker screen and those MCP tools would refuse with "No deck is open".
+
+**5b. Write the slide files and finalize `deck.ts`.** Create a task list with one task per slide file plus one task for finalizing `deck.ts` (edit it to import each slide and list them in order). Mark dependencies (all slide tasks must complete before the `deck.ts` finalization). Execute all slide tasks in parallel, then edit `deck.ts`.
 
 **For every slide file:**
 
@@ -330,14 +341,14 @@ Create a task list with one task per slide file plus one task for `deck.ts`. Mar
 - `TheEndSlide` and `ImageSlide` take no `header` prop
 - If a needed template does not exist, invoke the `create-new-template` skill before continuing
 
-**`deck.ts` contract:**
+**`deck.ts` contract** — `mcp__vibe__create_deck` has already written the stub with `title`, optional `theme.accent`, and `slides: []`. Edit it to add imports and fill `slides` in order:
 ```ts
-import type { Deck } from '../../src/types/slide'
+import type { Deck } from '@/types/slide'
 // ... slide imports
 
 export const deck: Deck = {
   title: 'Human-readable title',
-  theme: { accent: '#HEXVAL' },  // use the chosen accent color
+  theme: { accent: '#HEXVAL' },  // already set by create_deck if you passed accent
   slides: [/* ordered array */],
 }
 ```
@@ -348,10 +359,9 @@ Run `npm run build` and fix all TypeScript and import errors before proceeding. 
 
 ## Step 7 — Export and visual QA
 
-Tell the user you are going to verify the presentation, then export all slides:
-```
-npm run export -- --deck=<deck-name> --format=png
-```
+Tell the user you are going to verify the presentation, then export all slides by calling the `mcp__vibe__export_slides` MCP tool with `format: "png"` (no other args needed — the active deck is implicit).
+
+> **Do not run `npm run export` from Bash.** The OS sandbox blocks Chromium from registering Mach ports, so the shell route fails. Use the MCP tool. It writes the same PNGs to `exports/<deck-name>/`.
 
 Then read **every PNG** in `exports/<deck-name>/` one by one. For each slide, check:
 - No text is clipped or overflowing the 16:9 frame
@@ -362,12 +372,8 @@ Then read **every PNG** in `exports/<deck-name>/` one by one. For each slide, ch
 - Accent color is used intentionally and consistently
 - No two consecutive slides use the same template
 
-If any issue is found: fix the slide code, run `npm run build` again to confirm no new errors, then re-export only the affected slides and re-inspect:
-```
-npm run export -- --deck=<deck-name> --format=png --slides=<n>
-npm run export -- --deck=<deck-name> --format=png --slides=<a>,<b>,<c>
-npm run export -- --deck=<deck-name> --format=png --slides=<from>-<to>
-```
+If any issue is found: fix the slide code, run `npm run build` again to confirm no new errors, then re-export only the affected slides via the same MCP tool with a `slides` argument and re-inspect. The `slides` selector accepts the same syntax as the CLI: `"3"`, `"1,3,5"`, `"2-4"`, `"1,3-5,8"`.
+
 Repeat until every slide passes visual QA.
 
 Only after all slides pass visual inspection is the task complete.

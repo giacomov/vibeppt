@@ -26,7 +26,7 @@ describe('DeckPicker', () => {
 
   it('shows an empty-state message when there are no decks', () => {
     render(<DeckPicker decks={[]} onSelect={vi.fn()} />)
-    expect(screen.getByText(/no decks found/i)).toBeInTheDocument()
+    expect(screen.getByText(/This folder is empty/i)).toBeInTheDocument()
   })
 
   it('calls onSelect with the correct entry when a deck is clicked', () => {

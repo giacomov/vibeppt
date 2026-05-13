@@ -1,10 +1,20 @@
 import { defineConfig } from 'vite'
+import { fileURLToPath } from 'node:url'
+import { dirname, resolve } from 'node:path'
 import react from '@vitejs/plugin-react'
 import { agentPlugin } from './src/server/plugin'
+
+const ROOT = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   base: './',
   plugins: [react(), agentPlugin()],
+  resolve: {
+    alias: {
+      '@': resolve(ROOT, 'src'),
+      '@media': resolve(ROOT, 'media'),
+    },
+  },
   preview: {
     headers: {
       // CSP for the preview server (used by the export script).

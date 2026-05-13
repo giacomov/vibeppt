@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { isAutoApprovedBash, fileWriteSandboxDecision } from './plugin'
+import { isSafeDeckSubpath } from './sandbox'
 
 const CWD = '/repo'
 
@@ -35,6 +36,22 @@ describe('isAutoApprovedBash — allows bare ls invocations', () => {
     'ls > /tmp/out.log',
     'ls 2>&1',
     'ls /tmp /var',
+  ])('allows: %j', (cmd) => {
+    expect(isAutoApprovedBash(cmd)).toBe(true)
+  })
+})
+
+describe('isAutoApprovedBash — allows npx tsc type-check invocations', () => {
+  it.each([
+    'npx tsc --noEmit',
+    'npx tsc --noEmit presentations/claude-code/01-title.tsx',
+    'npx tsc --noEmit presentations/claude-code/01-title.tsx 2>&1',
+    'npx tsc --noEmit -p tsconfig.app.json',
+    'npx  tsc  --noEmit',
+    '  npx tsc --noEmit  ',
+    'npx tsc --noEmit > /tmp/out.log',
+    'npx tsc --noEmit presentations/foo/bar.tsx | head -50',
+    'npx tsc --noEmit presentations/foo/bar.tsx | tail -100',
   ])('allows: %j', (cmd) => {
     expect(isAutoApprovedBash(cmd)).toBe(true)
   })
@@ -85,8 +102,11 @@ describe('isAutoApprovedBash — blocks non-allowlisted prefixes', () => {
     'npm install',
     'npm test',
     'npm ci',
-    'npx tsc --noEmit',
+    'npx eslint .',
+    'npx tscx --noEmit',
     'sudo npm run build',
+    'sudo npx tsc --noEmit',
+    'echo npx tsc',
     'echo npm run build',
     'npmrun build',
     'npm-run build',
@@ -206,6 +226,34 @@ describe('fileWriteSandboxDecision — covers all FS_WRITE_TOOLS', () => {
   it('denies when neither file_path nor notebook_path is present', () => {
     const d = fileWriteSandboxDecision('Write', {}, CWD, 'foo')
     expect(d?.behavior).toBe('deny')
+  })
+})
+
+describe('isSafeDeckSubpath — rejects path-traversal-style deck names', () => {
+  it.each(['demo', 'work/pitch', 'demos/llm-2025-review', 'a/b/c', 'foo.bar', 'foo-bar_baz.v2'])(
+    'accepts: %j',
+    (value) => {
+      expect(isSafeDeckSubpath(value)).toBe(true)
+    },
+  )
+
+  it.each([
+    '',
+    '..',
+    '../etc',
+    'foo/../bar',
+    '/abs/path',
+    'foo//bar',
+    'foo/./bar',
+    'foo/bar/',
+    'has space',
+    'has\\backslash',
+    'has;semi',
+    null,
+    undefined,
+    42,
+  ])('rejects: %j', (value) => {
+    expect(isSafeDeckSubpath(value as unknown)).toBe(false)
   })
 })
 

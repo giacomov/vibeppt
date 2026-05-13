@@ -389,6 +389,21 @@ body {
   border: 1px solid rgb(var(--color-accent));
   border-radius: 8px;
   padding: 12px 14px;
+  animation: approval-card-flash 280ms ease-out;
+}
+
+@keyframes approval-card-flash {
+  0%   { background: color-mix(in srgb, rgb(var(--color-accent)) 18%, rgb(var(--color-surface))); }
+  100% { background: rgb(var(--color-surface)); }
+}
+
+.approval-counter {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--color-muted));
+  letter-spacing: 0.04em;
 }
 
 .approval-card--full {

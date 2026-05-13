@@ -70,6 +70,11 @@ export interface FilePickerRequestEvent {
   fileType: 'image' | 'video'
 }
 
+export interface DeckOpenedEvent {
+  type: 'deck_opened'
+  deckName: string
+}
+
 export interface PendingFilePicker {
   id: string
   fileType: 'image' | 'video'
@@ -84,5 +89,6 @@ export type StreamEvent =
   | ErrorEvent
   | PermissionRequestEvent
   | FilePickerRequestEvent
+  | DeckOpenedEvent
   | { type: string; [key: string]: unknown }
 

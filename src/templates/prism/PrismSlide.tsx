@@ -4,8 +4,8 @@ import { SlideLayout } from '../common/SlideLayout'
 
 export interface PrismItem {
   label: string
-  /** Emoji string or Lucide ReactNode shown inside the coloured circle */
-  icon?: string | ReactNode
+  /** Lucide icon ReactNode shown inside the coloured circle */
+  icon?: ReactNode
   /** Optional sub-label in smaller muted text */
   description?: string
 }
@@ -13,8 +13,8 @@ export interface PrismItem {
 export interface PrismSlideProps {
   /** The "whole" thing entering the prism (e.g. "LLM Context") */
   subject: string
-  /** Emoji string or Lucide ReactNode shown inside the source circle */
-  subjectIcon?: string | ReactNode
+  /** Lucide icon ReactNode shown inside the source circle */
+  subjectIcon?: ReactNode
   /** The components that emerge from the prism (3–7 works best) */
   items: PrismItem[]
   /** Optional slide header – use SectionTitle */
@@ -187,22 +187,11 @@ export function PrismSlide({
             style={{ stroke: 'rgb(var(--color-text) / 0.18)' }} strokeWidth="1.5"
           />
           {subjectIcon ? (
-            typeof subjectIcon === 'string' ? (
-              <text
-                x={SRC_CX} y={SRC_CY}
-                textAnchor="middle" dominantBaseline="central"
-                fontSize="26" fontFamily="var(--font-body)"
-                style={{ fill: 'rgb(var(--color-text))' }}
-              >
+            <foreignObject x={SRC_CX - 18} y={SRC_CY - 18} width={36} height={36}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', color: 'rgb(var(--color-text))' }}>
                 {subjectIcon}
-              </text>
-            ) : (
-              <foreignObject x={SRC_CX - 18} y={SRC_CY - 18} width={36} height={36}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', color: 'rgb(var(--color-text))' }}>
-                  {subjectIcon}
-                </div>
-              </foreignObject>
-            )
+              </div>
+            </foreignObject>
           ) : (
             <circle cx={SRC_CX} cy={SRC_CY} r={7} style={{ fill: 'rgb(var(--color-text) / 0.35)' }} />
           )}
@@ -274,27 +263,16 @@ export function PrismSlide({
               <circle cx={ray.pos.cx} cy={ray.pos.cy} r={iR} fill={ray.color} opacity="0.88" />
 
               {items[i].icon && (
-                typeof items[i].icon === 'string' ? (
-                  <text
-                    x={ray.pos.cx} y={ray.pos.cy}
-                    textAnchor="middle" dominantBaseline="central"
-                    fontSize={iR > 28 ? 20 : 15}
-                    fontFamily="var(--font-body)"
-                  >
-                    {items[i].icon as string}
-                  </text>
-                ) : (
-                  <foreignObject
-                    x={ray.pos.cx - (iR > 28 ? 12 : 9)}
-                    y={ray.pos.cy - (iR > 28 ? 12 : 9)}
-                    width={iR > 28 ? 24 : 18}
-                    height={iR > 28 ? 24 : 18}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', color: 'rgba(0,0,0,0.75)' }}>
-                      {items[i].icon as ReactNode}
-                    </div>
-                  </foreignObject>
-                )
+                <foreignObject
+                  x={ray.pos.cx - (iR > 28 ? 12 : 9)}
+                  y={ray.pos.cy - (iR > 28 ? 12 : 9)}
+                  width={iR > 28 ? 24 : 18}
+                  height={iR > 28 ? 24 : 18}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', color: 'rgba(0,0,0,0.75)' }}>
+                    {items[i].icon}
+                  </div>
+                </foreignObject>
               )}
 
               <text

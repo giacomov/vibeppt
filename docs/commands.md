@@ -2,12 +2,12 @@
 
 ## Development
 
-### `npm run dev`
+### `npm start`
 
-Start the Vite development server with hot module reload.
+Start the Vite development server with hot module reload. (`npm run dev` also works for backward compatibility.)
 
 ```bash
-npm run dev
+npm start
 ```
 
 Open the URL printed in the terminal (typically `http://localhost:5173`). The deck picker dashboard loads automatically. Any change to a presentation file or template reloads the affected slide instantly.

@@ -102,11 +102,7 @@ Never import from `example.tsx` — it is documentation only, not a renderable c
 ## Step 5 — Post-creation checklist
 
 1. Add the template to the decision guide table in `.agents/skills/create-presentation/SKILL.md`
-2. Create a demo slide: `demos/demo/[name].tsx` (fully filled in — not a copy of `example.tsx`)
-3. Import the demo slide into `demos/demo/deck.ts`
+2. Create a demo slide: `presentations/demos/demo/[name].tsx` (fully filled in — not a copy of `example.tsx`)
+3. Import the demo slide into `presentations/demos/demo/deck.ts`
 4. Run `npm run build` — fix all TypeScript errors before finishing
-5. Export the demo slide and inspect visually:
-   ```
-   npm run export -- --deck=demo --format=png --slides=<n>
-   ```
-   Check: no clipping, no blank frame, layout balanced, no content cut at edges
+5. Export the demo slide and inspect visually by calling the `mcp__vibe__export_slides` MCP tool with `format: "png"` and `slides: "<n>"`. (Do not use `npm run export` from Bash — it's blocked by the agent's OS sandbox.) Check: no clipping, no blank frame, layout balanced, no content cut at edges.

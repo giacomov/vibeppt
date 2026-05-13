@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import type { ReactNode, KeyboardEvent } from 'react'
-import { RotateCcw, Terminal, HelpCircle, Square, Image as ImageIcon, FileVideo, Settings } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { RotateCcw } from 'lucide-react'
 import type {
   ChatMessage,
   StreamEvent,
@@ -8,167 +8,43 @@ import type {
   ErrorEvent,
   PermissionRequestEvent,
   FilePickerRequestEvent,
+  DeckOpenedEvent,
   PendingApproval,
   PendingFilePicker,
   AskUserQuestionItem,
-  ToolIcon,
   SlideContext,
 } from '../types/chat'
-import Message from './Message'
-import ThinkingIndicator from './ThinkingIndicator'
-
-let counter = 0
-function uid(): string {
-  return String(++counter)
-}
-
-function toolIcon(name: string): ToolIcon {
-  switch (name) {
-    case 'Read':                       return 'read'
-    case 'Write':                      return 'write'
-    case 'Edit':
-    case 'str_replace_based_edit_tool':
-    case 'MultiEdit':                  return 'edit'
-    case 'Bash':                       return 'bash'
-    case 'Glob':
-    case 'Grep':                       return 'search'
-    case 'LS':                         return 'folder'
-    case 'Task':                       return 'bot'
-    case 'mcp__vibe__file_picker':     return 'folder'
-    default:                           return 'wrench'
-  }
-}
-
-function pickFileViaBrowser(fileType: 'image' | 'video'): Promise<File | null> {
-  return new Promise((resolve) => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = fileType === 'video'
-      ? 'video/*,.mp4,.mov,.webm,.m4v'
-      : 'image/*,.png,.jpg,.jpeg,.webp,.gif,.svg'
-    let settled = false
-    const finish = (file: File | null): void => {
-      if (settled) return
-      settled = true
-      resolve(file)
-    }
-    input.addEventListener('change', () => finish(input.files?.[0] ?? null))
-    input.addEventListener('cancel', () => finish(null))
-    input.click()
-  })
-}
-
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      const result = reader.result
-      if (typeof result !== 'string') {
-        reject(new Error('FileReader did not return a string'))
-        return
-      }
-      const comma = result.indexOf(',')
-      resolve(comma >= 0 ? result.slice(comma + 1) : result)
-    }
-    reader.onerror = () => reject(reader.error ?? new Error('FileReader failed'))
-    reader.readAsDataURL(file)
-  })
-}
-
-async function submitPickerPath(id: string, sourcePath: string): Promise<void> {
-  await fetch('/file-picker-result', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, sourcePath }),
-  })
-}
-
-async function submitPickerUrl(id: string, url: string): Promise<void> {
-  await fetch('/file-picker-result', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, url }),
-  })
-}
-
-async function submitPickerCancel(id: string): Promise<void> {
-  await fetch('/file-picker-result', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, cancelled: true }),
-  })
-}
-
-async function submitPickerUpload(id: string, file: File): Promise<void> {
-  const dataBase64 = await fileToBase64(file)
-  await fetch('/file-picker-upload', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, filename: file.name, dataBase64 }),
-  })
-}
-
-function toolLabel(name: string, input: Record<string, unknown>): string {
-  const path = String(input.path ?? input.file_path ?? input.new_path ?? '')
-  const command = String(input.command ?? '').slice(0, 70)
-  const pattern = String(input.pattern ?? input.glob ?? '')
-
-  switch (name) {
-    case 'Read':                       return `Reading ${path}`
-    case 'Write':                      return `Writing ${path}`
-    case 'Edit':
-    case 'str_replace_based_edit_tool':
-    case 'MultiEdit':                  return `Editing ${path}`
-    case 'Bash':                       return command
-    case 'Glob':                       return pattern
-    case 'Grep':                       return `"${String(input.pattern ?? '').slice(0, 50)}"`
-    case 'LS':                         return path
-    case 'Task':                       return 'Spawning subagent'
-    case 'mcp__vibe__file_picker':     return `Asking you to pick a ${String(input.file_type ?? 'file')}…`
-    default:                           return name
-  }
-}
-
-interface QState {
-  labels: string[]
-  otherActive: boolean
-  otherText: string
-}
-
-function computeAnswer(cur: QState | undefined): string {
-  if (!cur) return ''
-  const parts = [...cur.labels]
-  if (cur.otherActive && cur.otherText.trim()) parts.push(cur.otherText.trim())
-  return parts.join(', ')
-}
+import ApprovalCard from './chat/ApprovalCard'
+import FilePickerCard from './chat/FilePickerCard'
+import SettingsPanel from './chat/SettingsPanel'
+import ChatMessages from './chat/ChatMessages'
+import ChatInput from './chat/ChatInput'
+import {
+  computeAnswer,
+  pickFileViaBrowser,
+  submitPickerCancel,
+  submitPickerPath,
+  submitPickerUpload,
+  submitPickerUrl,
+  toolIcon,
+  toolLabel,
+  uid,
+  readStored,
+  type QState,
+} from './chat/helpers'
+import {
+  EFFORT_OPTIONS,
+  MODEL_OPTIONS,
+  type EffortLevel,
+  type ModelAlias,
+} from './chat/constants'
 
 interface Props {
   slideContext: SlideContext | null
+  onDeckOpened: (deckName: string) => void
 }
 
-type ModelAlias = 'opus' | 'sonnet' | 'haiku'
-type EffortLevel = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
-
-const MODEL_OPTIONS: { value: ModelAlias; label: string }[] = [
-  { value: 'opus', label: 'Opus' },
-  { value: 'sonnet', label: 'Sonnet' },
-  { value: 'haiku', label: 'Haiku' },
-]
-
-const EFFORT_OPTIONS: { value: EffortLevel; label: string }[] = [
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
-  { value: 'xhigh', label: 'Extra high' },
-  { value: 'max', label: 'Max' },
-]
-
-function readStored<T extends string>(key: string, allowed: readonly T[], fallback: T): T {
-  const v = localStorage.getItem(key)
-  return (allowed as readonly string[]).includes(v ?? '') ? (v as T) : fallback
-}
-
-export default function ChatPanel({ slideContext }: Props): ReactNode {
+export default function ChatPanel({ slideContext, onDeckOpened }: Props): ReactNode {
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     try {
       const s = localStorage.getItem('vibeppt-chat')
@@ -178,6 +54,7 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([])
+  const [approvalBatchTotal, setApprovalBatchTotal] = useState(0)
   const [qState, setQState] = useState<Record<string, QState>>({})
   const [pendingFilePickers, setPendingFilePickers] = useState<PendingFilePicker[]>([])
   const [pickerInput, setPickerInput] = useState('')
@@ -187,11 +64,12 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
     readStored('vibeppt-model', MODEL_OPTIONS.map(o => o.value), 'sonnet'))
   const [effort, setEffort] = useState<EffortLevel>(() =>
     readStored('vibeppt-effort', EFFORT_OPTIONS.map(o => o.value), 'medium'))
+  const [autoApproveWeb, setAutoApproveWeb] = useState<boolean>(() =>
+    localStorage.getItem('vibeppt-auto-approve-web') === '1')
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const endRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const abortRef = useRef<AbortController | null>(null)
-  const settingsRef = useRef<HTMLDivElement>(null)
+  const autoApproveWebRef = useRef(autoApproveWeb)
 
   useEffect(() => {
     localStorage.setItem('vibeppt-chat', JSON.stringify(messages))
@@ -206,19 +84,9 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
   }, [effort])
 
   useEffect(() => {
-    if (!settingsOpen) return
-    const onMouseDown = (e: MouseEvent) => {
-      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
-        setSettingsOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', onMouseDown)
-    return () => document.removeEventListener('mousedown', onMouseDown)
-  }, [settingsOpen])
-
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, loading, pendingApprovals, pendingFilePickers])
+    autoApproveWebRef.current = autoApproveWeb
+    localStorage.setItem('vibeppt-auto-approve-web', autoApproveWeb ? '1' : '0')
+  }, [autoApproveWeb])
 
   const postApprove = useCallback(async (
     id: string,
@@ -264,7 +132,7 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
     await postApprove(id, 'allow', { questions, answers })
   }, [pendingApprovals, qState, postApprove])
 
-  const toggleOption = (question: string, label: string, multi: boolean) => {
+  const toggleOption = useCallback((question: string, label: string, multi: boolean) => {
     setQState(prev => {
       const cur = prev[question] ?? { labels: [], otherActive: false, otherText: '' }
       if (multi) {
@@ -275,114 +143,22 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
       }
       return { ...prev, [question]: { ...cur, labels: [label], otherActive: false } }
     })
-  }
+  }, [])
 
-  const toggleOther = (question: string, multi: boolean) => {
+  const toggleOther = useCallback((question: string, multi: boolean) => {
     setQState(prev => {
       const cur = prev[question] ?? { labels: [], otherActive: false, otherText: '' }
       const otherActive = !cur.otherActive
       return { ...prev, [question]: { ...cur, otherActive, labels: multi ? cur.labels : [] } }
     })
-  }
+  }, [])
 
-  const setOtherText = (question: string, text: string) => {
+  const setOtherText = useCallback((question: string, text: string) => {
     setQState(prev => {
       const cur = prev[question] ?? { labels: [], otherActive: false, otherText: '' }
       return { ...prev, [question]: { ...cur, otherText: text, otherActive: true } }
     })
-  }
-
-  const renderApprovalCard = (): ReactNode => {
-    const pendingApproval = pendingApprovals[0]
-    if (!pendingApproval) return null
-
-    if (pendingApproval.toolName === 'Bash') {
-      const command = String(pendingApproval.input.command ?? '')
-      return (
-        <div className="approval-card">
-          <div className="approval-header">
-            <Terminal size={14} />
-            <span>Claude wants to run a shell command</span>
-          </div>
-          <pre className="approval-command">{command}</pre>
-          {pendingApproval.explanation && (
-            <p className="approval-explanation">{pendingApproval.explanation}</p>
-          )}
-          <div className="approval-buttons">
-            <button className="approval-allow" onClick={() => void allowTool()}>Allow</button>
-            <button className="approval-deny" onClick={() => void denyTool()}>Deny</button>
-          </div>
-        </div>
-      )
-    }
-
-    if (pendingApproval.toolName === 'AskUserQuestion') {
-      const questions = pendingApproval.input.questions as AskUserQuestionItem[]
-      const allAnswered = questions.every(q => computeAnswer(qState[q.question]).length > 0)
-      return (
-        <div className="approval-card">
-          <div className="approval-header">
-            <HelpCircle size={14} />
-            <span>Claude has a question</span>
-          </div>
-          {questions.map(q => {
-            const cur = qState[q.question] ?? { labels: [], otherActive: false, otherText: '' }
-            return (
-              <div key={q.question} className="approval-question-block">
-                {q.header && <span className="approval-question-header">{q.header}</span>}
-                <p className="approval-question">{q.question}</p>
-                <div className="approval-options">
-                  {q.options.map(opt => (
-                    <button
-                      key={opt.label}
-                      className={`approval-option${cur.labels.includes(opt.label) ? ' approval-option--selected' : ''}`}
-                      onClick={() => toggleOption(q.question, opt.label, q.multiSelect)}
-                      title={opt.description}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                  <button
-                    className={`approval-option${cur.otherActive ? ' approval-option--selected' : ''}`}
-                    onClick={() => toggleOther(q.question, q.multiSelect)}
-                  >
-                    Other
-                  </button>
-                </div>
-                {cur.otherActive && (
-                  <input
-                    type="text"
-                    className="approval-other-input"
-                    value={cur.otherText}
-                    onChange={e => setOtherText(q.question, e.target.value)}
-                    placeholder="Type your answer…"
-                    autoFocus
-                  />
-                )}
-              </div>
-            )
-          })}
-          <div className="approval-buttons">
-            <button className="approval-allow" disabled={!allAnswered} onClick={() => void submitAnswers()}>
-              Submit
-            </button>
-          </div>
-        </div>
-      )
-    }
-
-    return (
-      <div className="approval-card">
-        <div className="approval-header">
-          <span>Claude wants to use: {pendingApproval.toolName}</span>
-        </div>
-        <div className="approval-buttons">
-          <button className="approval-allow" onClick={() => void allowTool()}>Allow</button>
-          <button className="approval-deny" onClick={() => void denyTool()}>Deny</button>
-        </div>
-      </div>
-    )
-  }
+  }, [])
 
   const popPicker = useCallback(() => {
     setPickerInput('')
@@ -433,41 +209,36 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
     try { await submitPickerCancel(current.id) } finally { popPicker() }
   }, [pendingFilePickers, pickerSubmitting, popPicker])
 
-  const renderFilePickerCard = (): ReactNode => {
+  const dropFile = useCallback(async (file: File) => {
     const current = pendingFilePickers[0]
-    if (!current) return null
-    const isVideo = current.fileType === 'video'
-    const HeaderIcon = isVideo ? FileVideo : ImageIcon
-    return (
-      <div className="approval-card approval-card--full">
-        <div className="approval-header">
-          <HeaderIcon size={14} />
-          <span>{isVideo ? 'Pick a video' : 'Pick an image'}</span>
-        </div>
-        <input
-          type="text"
-          className="approval-input"
-          value={pickerInput}
-          onChange={e => { setPickerInput(e.target.value); if (pickerError) setPickerError(null) }}
-          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); void usePicker() } }}
-          placeholder="Path (/Users/…) or URL (https://…)"
-          autoFocus
-          disabled={pickerSubmitting}
-        />
-        {pickerError && <p className="approval-explanation" style={{ color: 'var(--color-accent)' }}>{pickerError}</p>}
-        <div className="approval-buttons">
-          <button className="approval-deny" onClick={() => void browsePicker()} disabled={pickerSubmitting}>Browse…</button>
-          <button className="approval-allow" onClick={() => void usePicker()} disabled={pickerSubmitting || !pickerInput.trim()}>Use</button>
-          <button className="approval-deny" onClick={() => void cancelPicker()} disabled={pickerSubmitting}>Cancel</button>
-        </div>
-      </div>
-    )
-  }
+    if (!current || pickerSubmitting) return
+    const expectedPrefix = current.fileType === 'video' ? 'video/' : 'image/'
+    if (file.type && !file.type.startsWith(expectedPrefix)) {
+      setPickerError(`Dropped file is ${file.type || 'unknown type'}, expected ${expectedPrefix}*`)
+      return
+    }
+    setPickerError(null)
+    setPickerSubmitting(true)
+    try { await submitPickerUpload(current.id, file) } finally { popPicker() }
+  }, [pendingFilePickers, pickerSubmitting, popPicker])
 
-  const fillSuggestion = (text: string) => {
+  const dropUrl = useCallback(async (url: string) => {
+    const current = pendingFilePickers[0]
+    if (!current || pickerSubmitting) return
+    setPickerError(null)
+    setPickerSubmitting(true)
+    try { await submitPickerUrl(current.id, url) } finally { popPicker() }
+  }, [pendingFilePickers, pickerSubmitting, popPicker])
+
+  const handlePickerInputChange = useCallback((value: string) => {
+    setPickerInput(value)
+    if (pickerError) setPickerError(null)
+  }, [pickerError])
+
+  const fillSuggestion = useCallback((text: string) => {
     setInput(text)
     textareaRef.current?.focus()
-  }
+  }, [])
 
   const send = useCallback(async () => {
     const text = input.trim()
@@ -538,11 +309,22 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
           } else if (event.type === 'permission_request') {
             const ev = event as PermissionRequestEvent
             currentAssistantId = null
-            setPendingApprovals(prev => [...prev, { id: ev.id, toolName: ev.toolName, input: ev.input, explanation: ev.explanation }])
+            if (autoApproveWebRef.current && (ev.toolName === 'WebSearch' || ev.toolName === 'WebFetch')) {
+              void postApprove(ev.id, 'allow', ev.input)
+            } else {
+              setPendingApprovals(prev => {
+                setApprovalBatchTotal(t => prev.length === 0 ? 1 : t + 1)
+                return [...prev, { id: ev.id, toolName: ev.toolName, input: ev.input, explanation: ev.explanation }]
+              })
+            }
           } else if (event.type === 'file_picker_request') {
             const ev = event as FilePickerRequestEvent
             currentAssistantId = null
             setPendingFilePickers(prev => [...prev, { id: ev.id, fileType: ev.fileType }])
+          } else if (event.type === 'deck_opened') {
+            const ev = event as DeckOpenedEvent
+            currentAssistantId = null
+            onDeckOpened(ev.deckName)
           } else if (event.type === 'error') {
             const err = event as ErrorEvent
             setMessages(prev => [...prev, { id: uid(), role: 'error', text: err.message }])
@@ -557,13 +339,14 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
       abortRef.current = null
       setLoading(false)
       setPendingApprovals([])
+      setApprovalBatchTotal(0)
       setQState({})
       setPendingFilePickers([])
       setPickerInput('')
       setPickerError(null)
       setPickerSubmitting(false)
     }
-  }, [input, loading, slideContext, model, effort])
+  }, [input, loading, slideContext, model, effort, postApprove, onDeckOpened])
 
   const stop = useCallback(async () => {
     abortRef.current?.abort()
@@ -572,14 +355,7 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
     } catch { /* ignore */ }
   }, [])
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault()
-      void send()
-    }
-  }
-
-  const reset = async () => {
+  const reset = useCallback(async () => {
     setPendingApprovals([])
     setQState({})
     setPendingFilePickers([])
@@ -590,51 +366,61 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
     localStorage.removeItem('vibeppt-session-id')
     await fetch('/reset', { method: 'POST' })
     setMessages([])
-  }
+  }, [])
+
+  const currentApproval = pendingApprovals[0]
+  const currentPicker = pendingFilePickers[0]
+  const approvalCard = currentApproval
+    ? (
+      <ApprovalCard
+        pendingApproval={currentApproval}
+        queueSize={pendingApprovals.length}
+        approvalBatchTotal={approvalBatchTotal}
+        qState={qState}
+        onAllow={() => void allowTool()}
+        onDeny={() => void denyTool()}
+        onSubmitAnswers={() => void submitAnswers()}
+        onToggleOption={toggleOption}
+        onToggleOther={toggleOther}
+        onSetOtherText={setOtherText}
+      />
+    )
+    : null
+  const filePickerCard = currentPicker
+    ? (
+      <FilePickerCard
+        picker={currentPicker}
+        pickerInput={pickerInput}
+        pickerError={pickerError}
+        pickerSubmitting={pickerSubmitting}
+        onInputChange={handlePickerInputChange}
+        onBrowse={() => void browsePicker()}
+        onUse={() => void usePicker()}
+        onCancel={() => void cancelPicker()}
+        onDropFile={(file) => void dropFile(file)}
+        onDropUrl={(url) => void dropUrl(url)}
+        onDropError={(message) => setPickerError(message)}
+      />
+    )
+    : null
 
   return (
     <>
       <header className="chat-header">
         <span className="chat-title">VibePPT</span>
         <div className="chat-header-actions">
-          <div className="settings-wrapper" ref={settingsRef}>
-            <button
-              className="reset-btn settings-btn"
-              onClick={() => setSettingsOpen(o => !o)}
-              aria-label="Model settings"
-              aria-expanded={settingsOpen}
-            >
-              <Settings size={12} />
-            </button>
-            {settingsOpen && (
-              <div className="settings-popover" role="dialog">
-                <label className="settings-row">
-                  <span>Model</span>
-                  <select
-                    value={model}
-                    onChange={e => setModel(e.target.value as ModelAlias)}
-                    disabled={loading}
-                  >
-                    {MODEL_OPTIONS.map(o => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="settings-row">
-                  <span>Effort</span>
-                  <select
-                    value={effort}
-                    onChange={e => setEffort(e.target.value as EffortLevel)}
-                    disabled={loading}
-                  >
-                    {EFFORT_OPTIONS.map(o => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-            )}
-          </div>
+          <SettingsPanel
+            model={model}
+            effort={effort}
+            autoApproveWeb={autoApproveWeb}
+            loading={loading}
+            open={settingsOpen}
+            onToggleOpen={() => setSettingsOpen(o => !o)}
+            onRequestClose={() => setSettingsOpen(false)}
+            onModelChange={setModel}
+            onEffortChange={setEffort}
+            onAutoApproveWebChange={setAutoApproveWeb}
+          />
           <button className="reset-btn" onClick={() => void reset()} disabled={loading}>
             <RotateCcw size={12} />
             New session
@@ -642,62 +428,24 @@ export default function ChatPanel({ slideContext }: Props): ReactNode {
         </div>
       </header>
 
-      <div className="messages">
-        {messages.length === 0 && !loading && (
-          <div className="welcome-hints">
-            <p className="welcome-tagline">What would you like to do?</p>
-            <div className="suggestion-chips">
-              <button className="chip" onClick={() => fillSuggestion('Open a presentation and ask me to modify it')}>
-                Open a presentation and ask me to modify it
-              </button>
-              <button className="chip" onClick={() => fillSuggestion('Create a presentation about ')}>
-                Create a presentation about …
-              </button>
-            </div>
-          </div>
-        )}
-        {messages.map(msg => (
-          <Message key={msg.id} message={msg} />
-        ))}
-        {loading && pendingApprovals.length === 0 && pendingFilePickers.length === 0 && (
-          <div className="thinking-indicator">
-            <ThinkingIndicator />
-          </div>
-        )}
-        {renderApprovalCard()}
-        {renderFilePickerCard()}
-        <div ref={endRef} />
-      </div>
+      <ChatMessages
+        messages={messages}
+        loading={loading}
+        showThinking={loading && pendingApprovals.length === 0 && pendingFilePickers.length === 0}
+        onSuggestionClick={fillSuggestion}
+        approvalCard={approvalCard}
+        filePickerCard={filePickerCard}
+        scrollTrigger={`${messages.length}-${loading ? 1 : 0}-${pendingApprovals.length}-${pendingFilePickers.length}`}
+      />
 
-      <footer className="input-area">
-        <textarea
-          ref={textareaRef}
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Ask Claude to modify your presentation… (⌘↵ to send)"
-          rows={3}
-          disabled={loading}
-        />
-        {loading ? (
-          <button
-            className="send-btn stop-btn"
-            onClick={() => void stop()}
-            aria-label="Stop"
-          >
-            <Square size={14} fill="currentColor" />
-            Stop
-          </button>
-        ) : (
-          <button
-            className="send-btn"
-            onClick={() => void send()}
-            disabled={!input.trim()}
-          >
-            Send
-          </button>
-        )}
-      </footer>
+      <ChatInput
+        ref={textareaRef}
+        value={input}
+        loading={loading}
+        onChange={setInput}
+        onSend={() => void send()}
+        onStop={() => void stop()}
+      />
     </>
   )
 }

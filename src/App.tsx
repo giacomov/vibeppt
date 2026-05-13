@@ -10,12 +10,13 @@ import { PresenterNotes } from './components/PresenterNotes'
 import { PresenterWindow } from './components/PresenterWindow'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import ChatPanel from './components/ChatPanel'
-import { Sun, Moon } from 'lucide-react'
+import { Sun, Moon, Home, SkipForward, Play, MessageSquare, Monitor, Download, Loader2 } from 'lucide-react'
 import { isExportMode } from './utils/export'
 import { toChannels, sanitizeFont, getPaletteStyle, getStoredTheme, storeTheme } from './utils/theme'
 import type { ThemeMode } from './utils/theme'
 import type { SlideContext } from './types/chat'
 import { useAnimationContext } from './contexts/AnimationContext'
+import { encodeDeckParam, decodeDeckParam } from './utils/url-deck'
 
 const initParams = new URLSearchParams(window.location.search)
 const deckParam = initParams.get('deck')
@@ -25,7 +26,7 @@ const slideParam = initParams.get('slide')
 // fresh launch), fall back to the last deck/slide saved in localStorage.
 const storedDeck = typeof localStorage !== 'undefined' ? localStorage.getItem('vibeppt-deck') : null
 const storedSlide = typeof localStorage !== 'undefined' ? localStorage.getItem('vibeppt-slide') : null
-const initialDeckName = deckParam ?? storedDeck
+const initialDeckName = deckParam ? decodeDeckParam(deckParam) : storedDeck
 
 export default function App() {
   const animCtx = useAnimationContext()
@@ -50,6 +51,13 @@ export default function App() {
   const [focusMode, setFocusMode] = useState(false)
   const [themeMode, setThemeMode] = useState<ThemeMode>(getStoredTheme)
   const [exporting, setExporting] = useState(false)
+  const [skipOpen, setSkipOpen] = useState(false)
+  const [skipValue, setSkipValue] = useState('')
+
+  useEffect(() => {
+    setSkipOpen(false)
+    setSkipValue('')
+  }, [selectedDeckName])
 
   useEffect(() => {
     storeTheme(themeMode)
@@ -85,7 +93,7 @@ export default function App() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${selectedDeck.name}.pdf`
+      a.download = `${selectedDeck.name.split('/').pop()}.pdf`
       document.body.appendChild(a)
       a.click()
       a.remove()
@@ -109,15 +117,23 @@ export default function App() {
     }
   }, [animCtx, selectedDeck?.deck.slides.length])
 
+  const handleGoto = useCallback((index: number) => {
+    const total = selectedDeck?.deck.slides.length ?? 0
+    if (total === 0) return
+    const clamped = Math.max(0, Math.min(total - 1, index))
+    setCurrentIndex(clamped)
+  }, [selectedDeck?.deck.slides.length])
+
   useEffect(() => {
     if (!selectedDeck) return
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') handleNext()
       if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') handlePrev()
+      if (e.key === 'Home') { e.preventDefault(); handleGoto(0) }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [selectedDeck, handleNext, handlePrev])
+  }, [selectedDeck, handleNext, handlePrev, handleGoto])
 
   useEffect(() => {
     if (!isExportMode || !selectedDeck) return
@@ -135,7 +151,7 @@ export default function App() {
       localStorage.removeItem('vibeppt-slide')
       return
     }
-    const params = new URLSearchParams({ deck: selectedDeck.name, slide: String(currentIndex) })
+    const params = new URLSearchParams({ deck: encodeDeckParam(selectedDeck.name), slide: String(currentIndex) })
     history.replaceState(null, '', `?${params}`)
     localStorage.setItem('vibeppt-deck', selectedDeck.name)
     localStorage.setItem('vibeppt-slide', String(currentIndex))
@@ -183,8 +199,9 @@ export default function App() {
     deckContent = <DeckPicker decks={allDecks} onSelect={handleSelect} />
   } else if (deck!.slides.length === 0) {
     deckContent = (
-      <div className="flex items-center justify-center h-full bg-background text-muted font-mono text-sm">
-        No slides found. Add slides to your deck.ts.
+      <div className="flex items-center justify-center gap-3 h-full bg-background text-muted font-mono text-sm">
+        <Loader2 size={18} className="animate-spin text-accent" />
+        Slides are being built
       </div>
     )
   } else {
@@ -211,23 +228,97 @@ export default function App() {
           </button>
           <div className={`absolute top-4 right-4 flex items-center gap-2 ${!focusMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-all duration-300`}>
             <button
-              onClick={() => setFocusMode(m => !m)}
-              className="text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300"
+              onClick={() => handleGoto(0)}
+              disabled={currentIndex === 0}
+              className="flex items-center gap-1.5 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent disabled:opacity-40 transition-all duration-300"
+              aria-label="Go to first slide"
             >
+              <Home size={12} />
+              Home
+            </button>
+            {skipOpen ? (
+              <>
+                <input
+                  autoFocus
+                  type="number"
+                  min={1}
+                  max={deck!.slides.length}
+                  value={skipValue}
+                  onChange={(e) => setSkipValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      const n = parseInt(skipValue, 10)
+                      if (Number.isFinite(n) && n >= 1 && n <= deck!.slides.length) {
+                        handleGoto(n - 1)
+                        setSkipOpen(false)
+                        setSkipValue('')
+                      }
+                    } else if (e.key === 'Escape') {
+                      e.preventDefault()
+                      setSkipOpen(false)
+                      setSkipValue('')
+                    }
+                  }}
+                  placeholder="#"
+                  className="font-mono text-xs bg-surface text-text border border-accent/40 rounded px-3 py-1.5 focus:outline-none focus:border-accent placeholder:text-muted/60 w-20"
+                />
+                <button
+                  onClick={() => {
+                    const n = parseInt(skipValue, 10)
+                    if (Number.isFinite(n) && n >= 1 && n <= deck!.slides.length) {
+                      handleGoto(n - 1)
+                      setSkipOpen(false)
+                      setSkipValue('')
+                    }
+                  }}
+                  disabled={(() => {
+                    const n = parseInt(skipValue, 10)
+                    return !Number.isFinite(n) || n < 1 || n > deck!.slides.length
+                  })()}
+                  className="font-mono text-xs text-accent hover:underline disabled:opacity-40 disabled:no-underline"
+                >
+                  Go
+                </button>
+                <button
+                  onClick={() => { setSkipOpen(false); setSkipValue('') }}
+                  className="font-mono text-xs text-muted hover:text-text transition-colors"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setSkipOpen(true)}
+                className="flex items-center gap-1.5 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300"
+                aria-label="Jump to slide"
+              >
+                <SkipForward size={12} />
+                Jump to
+              </button>
+            )}
+            <div className="w-px h-4 bg-muted/30" />
+            <button
+              onClick={() => setFocusMode(m => !m)}
+              className="flex items-center gap-1.5 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300"
+            >
+              {focusMode ? <MessageSquare size={12} /> : <Play size={12} />}
               {focusMode ? 'Show Chat' : 'Present'}
             </button>
             <button
               onClick={() => setPresenterOpen(true)}
               disabled={presenterOpen}
-              className="text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent disabled:opacity-40 transition-all duration-300"
+              className="flex items-center gap-1.5 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent disabled:opacity-40 transition-all duration-300"
             >
+              <Monitor size={12} />
               Presenter View
             </button>
             <button
               onClick={() => void handleExport()}
               disabled={exporting}
-              className="text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent disabled:opacity-40 transition-all duration-300"
+              className="flex items-center gap-1.5 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent disabled:opacity-40 transition-all duration-300"
             >
+              <Download size={12} />
               {exporting ? 'Exporting…' : 'Export'}
             </button>
           </div>
@@ -248,6 +339,8 @@ export default function App() {
                 current={currentIndex}
                 onPrev={handlePrev}
                 onNext={handleNext}
+                onHome={() => handleGoto(0)}
+                onGoto={handleGoto}
               />
               <PresenterNotes notes={notes} />
             </div>
@@ -266,7 +359,13 @@ export default function App() {
       </div>
       {!hideChatPanel && (
         <div className="chat-panel">
-          <ChatPanel slideContext={slideContext} />
+          <ChatPanel
+            slideContext={slideContext}
+            onDeckOpened={(name) => {
+              setSelectedDeckName(name)
+              setCurrentIndex(0)
+            }}
+          />
         </div>
       )}
     </div>

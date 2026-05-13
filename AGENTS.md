@@ -14,7 +14,7 @@ A minimal, AI-native slide deck builder. Presentations are React components asse
 ## Commands
 
 ```bash
-npm run dev                          # Start dev server (hot reload)
+npm start                            # Start dev server (hot reload)
 npm run build                        # Production build — run this and fix all errors before finishing
 npm run preview                      # Preview production build
 npm run export -- --deck=<name> --format=png   # Export slides as PNGs to exports/<name>/ (use this to review slides)
@@ -26,6 +26,10 @@ npm run export -- --deck=<name> --format=png --slides=2-5      # Export slides 2
 npm run export -- --deck=<name> --format=png --slides=1,3-5,8  # Mixed: individual and ranges
 ```
 
+**In-app agent: do NOT run `npm run export` via Bash.** It will fail — the OS sandbox blocks Chromium from registering Mach ports. Use the MCP tool `mcp__vibe__export_slides` instead, which runs the export unsandboxed inside the Vite dev server. It takes the active deck implicitly (no `--deck` needed) and accepts `format` (`png`/`pdf`/`both`), optional `slides` (same selector syntax: `"3"`, `"1,4,7"`, `"2-5"`, `"1,3-5,8"`), and optional `slide_time_ms`. The `npm run export` invocations above are still correct for users running the export from their terminal outside the in-app agent.
+
+**In-app agent: to start a new presentation, call `mcp__vibe__create_deck` FIRST.** Takes `name` (kebab-case folder path under `presentations/`, may contain `/` for nesting), `title` (human-readable), and optional `accent` (hex color). The tool writes a minimal `presentations/<name>/deck.ts` with `slides: []`, switches the panel to the new deck, and marks the active deck for the rest of the chat turn — after which `mcp__vibe__file_picker` and `mcp__vibe__export_slides` work without further user action. Do not scaffold `deck.ts` with the `Write` tool yourself: the panel would stay on the picker screen and those other MCP tools would refuse with "No deck is open". After the tool returns, write slide files into `presentations/<name>/` and edit `deck.ts` to import them in order.
+
 **Type-check a single file without a full build:**
 ```bash
 npx tsc --noEmit presentations/<deck>/<file>.tsx
@@ -33,16 +37,38 @@ npx tsc --noEmit presentations/<deck>/<file>.tsx
 
 ---
 
-## Three-Layer Architecture
+## MANDATORY: re-export after any visual change
+
+If the user's request was about how a slide *looks* — not just what it says — you **must** re-export the affected slide(s) with `mcp__vibe__export_slides` (in-app agent) or `npm run export` (terminal user) before reporting the task as done, and then inspect the resulting PNG(s) to verify the fix actually worked. Type-checking and `npm run build` do not catch visual regressions; only the rendered PNG does.
+
+This rule fires whenever the user is reacting to something they *saw*. Examples that always require a re-export:
+
+- Content overflow / pagination: "text is cut off", "doesn't fit", "split this into two slides", "the bullets run off the bottom"
+- Overlap or collision: "the title overlaps the chart", "icons are stacking on top of each other", "card is behind the image"
+- Image fixes: placement, size, crop, aspect ratio, alt-positioning, caption position, swapping the asset. **For image-related changes, also `Read` the source image file on disk** (from `media/` or wherever the asset lives) in addition to the exported PNG. The export only shows the framed result — comparing it against the full original is how you catch that a subject got cropped out, the focal point is off-frame, or the image is being letterboxed/zoomed in a way that hides important content.
+- Spacing / alignment: padding, gaps, margins, vertical centering, columns not lining up
+- Typography: font size too big/small, line-height, wrapping in an ugly place, eyebrow/subtitle hierarchy
+- Color, contrast, theming: accent color, dark-mode rendering, an element that "disappears" on background
+- Layout swaps: changing `ratio` on `SplitSlide`, switching columns, reordering elements within a slide
+- Animation / motion fixes that have a visible end state (final frame matters)
+
+When **not** required: pure content edits the user dictated verbatim (typo fix, rewording a bullet, changing a name) where nothing visual is in play. When in doubt, export — it's cheap and the alternative is shipping a regression.
+
+Export only the slides that changed (use the `slides` selector), then open the PNGs with the Read tool before declaring done.
+
+---
+
+## Architecture
 
 ```
-presentations/    → User's actual decks (user content — agents work here by default)
-demos/            → Template showcase decks (one slide per template; NOT for user presentations)
-src/templates/    → Reusable parameterized base components (the "vocabulary")
-src/components/   → App chrome: renderer, navigation, presenter UI
+presentations/         → All decks live here, organized in arbitrary subfolders
+  demos/               → Template showcase decks (one slide per template; NOT for user presentations)
+  <your-deck>/         → User decks at any depth (e.g. presentations/work/pitch/)
+src/templates/         → Reusable parameterized base components (the "vocabulary")
+src/components/        → App chrome: renderer, navigation, presenter UI
 ```
 
-**Agents default to working in `presentations/`.** New user presentations go in `presentations/`, never in `demos/`. `demos/` is reserved for the template showcase — add a demo slide there only when creating a new template. Only add to `src/templates/` when a reusable layout doesn't exist yet.
+**Agents default to working in `presentations/`.** Decks can be nested inside subfolders (e.g. `presentations/work/pitch/`); the dashboard mirrors the on-disk hierarchy. New user decks go anywhere under `presentations/` *except* `presentations/demos/`, which is reserved for the template showcase — add a demo slide there only when creating a new template. Only add to `src/templates/` when a reusable layout doesn't exist yet.
 
 ---
 
@@ -65,7 +91,9 @@ When you're running as the agent inside the VibePPT chat panel, your filesystem 
 - "Move slides from deck X into this deck" while you are editing deck Y → Reading from `presentations/X/` works (`cat`, `cp` source side). But `mv` will fail because it requires deleting in deck X. Use `cp` instead, or ask the user to switch context.
 - "Copy a layout from deck X into this deck" → Fine. Reads from other decks are not blocked.
 - "Look at how deck X solved this" → Fine. Read tools and bash reads are unrestricted.
-- "Run `npm run build` / `npm run export`" → Fine. These write to `dist/` and `exports/`, both inside the repo and outside `presentations/`.
+- "Run `npm run build`" → Fine. Writes to `dist/`, inside the repo.
+- "Create a new deck" → Use the `mcp__vibe__create_deck` MCP tool. Do NOT use `Write` to scaffold `deck.ts` yourself — the tool also opens the new deck in the panel and marks it active, so the rest of your flow (file picker, export, slide writes) targets the new deck without user intervention.
+- "Export the deck" → Use the `mcp__vibe__export_slides` MCP tool, NOT `npm run export` via Bash. The sandbox blocks Chromium's Mach port rendezvous, so the Bash route fails with `bootstrap_check_in ... Permission denied`. The MCP tool runs the export from the unsandboxed Vite dev server and writes to `exports/<deck>/` exactly as `npm run export` would.
 - "Edit `src/templates/...`" → **Denied** by the file-write sandbox. Don't try; tell the user that template edits aren't part of the in-app agent's scope.
 
 **The OS sandbox cannot be disabled by the agent.** Don't try to retry with `dangerouslyDisableSandbox` or similar — `allowUnsandboxedCommands: false` makes that flag a no-op. If a command is failing because of the sandbox, surface that fact honestly to the user.
@@ -76,13 +104,20 @@ When you're running as the agent inside the VibePPT chat panel, your filesystem 
 
 ```
 presentations/
-  [deck-name]/
-    deck.ts           ← manifest: imports + orders slides, optional theme override
+  [deck-name]/                  ← decks at the top level
+    deck.ts                     ← manifest: imports + orders slides, optional theme override
     title.tsx
     next-slide.tsx
     ...
     author/
-      author.json     ← optional: { firstName, lastName, linkedIn }
+      author.json               ← optional: { firstName, lastName, linkedIn }
+  [folder]/[deck-name]/         ← decks may also be nested in subfolders (e.g. work/pitch)
+    deck.ts
+    ...
+  demos/                        ← template showcase decks (one slide per template)
+    demo/
+      deck.ts
+      ...
 
 src/
   templates/
@@ -151,6 +186,27 @@ src/decks.ts → DeckPicker dashboard → SlideRenderer.tsx → renders slides[c
 
 ---
 
+## Import paths
+
+Decks use **path aliases**, not parent-relative imports, so a deck can be moved or nested without breaking. Configured in `vite.config.ts` and `tsconfig.app.json`.
+
+| Alias | Resolves to |
+|---|---|
+| `@/...` | `src/...` |
+| `@media/...` | `media/...` |
+
+```tsx
+// In any presentations/**/*.tsx file — depth-independent:
+import { TitleSlide } from '@/templates/title/TitleSlide'
+import { SectionTitle, HeroTitle } from '@/templates/common/SlideTitle'
+import type { SlideMeta } from '@/types/slide'
+import logoUrl from '@media/logo.png'
+```
+
+Do **not** use `../../src/...` or `../../media/...` in new slides — those break when the dashboard moves a deck into a folder.
+
+---
+
 ## Key Type Contracts
 
 ```ts
@@ -163,6 +219,26 @@ export interface Deck {
   slides: SlideComponent[]
 }
 ```
+
+---
+
+## Template prop conventions
+
+Most content templates take a `header?: ReactNode` slot for their heading (passed `<SectionTitle ...>` or `<SubsectionTitle ...>` from `common/SlideTitle.tsx`) plus a payload prop for the data (`bullets`, `items`, `cards`, `nodes`, etc.). `TitleSlide` is the one outlier among "normal" templates — it accepts `children` (typically `<HeroTitle ...>`).
+
+A handful of templates intentionally do **not** take `header`. These are not drift; they're slides where the content *is* the slide or where animation is bound to discrete title/subtitle strings. Don't try to migrate them.
+
+| Template | Reason for no `header` | Props (relevant) |
+|---|---|---|
+| `SplitSlide` | Layout-only: two arbitrary regions, no concept of a heading. | `left`, `right`, `ratio?` |
+| `ImageSlide` | Full-bleed image with optional caption; the image is the content. | `src`, `alt`, `caption?`, `position?` |
+| `QuoteSlide` | The quote *is* the slide. | `quote`, `attribution`, `role?` |
+| `TestimonialSlide` | The testimonial *is* the slide. | `quote`, `author`, `role?`, `company?`, `avatarUrl?`, `rating?` |
+| `ClosingSlide` | Themed sign-off with headline + CTA + contact. | `headline?`, `subtitle?`, `cta?`, `contact?` |
+| `BoardingPassSlide` | Boarding-pass framing has its own field structure. | `airline?`, `flightNumber?`, `from`, `to`, `fields?`, `stub?`, `stamp?`, `tagline?` |
+| `SectionTitleSlide` | Split-flap shuffle animation drives directly from the title string. | `title`, `eyebrow?`, `subtitle?` |
+| `SectionDividerSlide` | Full-bleed section divider with optional background image/color. | `title`, `eyebrow?`, `subtitle?`, `backgroundColor?`, `backgroundImage?`, `overlayOpacity?` |
+| `TheEndSlide` | Letter-spring animation locks "The End" as the only headline. | `subtitle?` |
 
 ---
 
@@ -213,6 +289,20 @@ export const tokens = lightTokens
 | `fonts.mono` | `font-mono` |
 | `spacing.slideX` | `px-slide-x` |
 | `spacing.slideY` | `py-slide-y` |
+
+---
+
+## Icons
+
+Use **Lucide React** for any icon in a slide. Import by name from `lucide-react`:
+
+```tsx
+import { CheckCircle2 } from 'lucide-react'
+// ...
+<CheckCircle2 size={22} className="text-accent" />
+```
+
+Avoid unicode glyphs (✓, ★, →, ⚙, …) and emoji as icons — they don't inherit token colors, look inconsistent across templates, and render unreliably in the PNG/PDF exporter. Every template that takes an icon prop expects a `ReactNode`.
 
 ---
 

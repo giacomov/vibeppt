@@ -4,10 +4,12 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "start": "vite",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "export": "node scripts/export-slides.mjs",
+    "compress-silence": "node scripts/compress-silence.mjs",
     "sync-tasks": "node scripts/sync-tasks-to-github.mjs",
     "test": "vitest run",
     "test:watch": "vitest",

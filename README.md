@@ -22,7 +22,7 @@ Verify that I have `npm` available, and if not install it for me.
 
 Then clone the repository https://github.com/giacomov/vibeppt.
 
-Install the required dependencies with `npm install`, then start the app with `npm run dev`.
+Install the required dependencies with `npm install`, then start the app with `npm start`.
 ```
 
 Then open the URL Vite prints (by default `http://localhost:5173`) and ask to create a presentation about something.
@@ -39,7 +39,7 @@ After implementing it, it will export each slide as an image and check for align
 git clone https://github.com/giacomov/vibeppt.git
 cd vibeppt
 npm install
-npm run dev
+npm start
 ```
 
 Then open the URL Vite prints (by default `http://localhost:5173`).
@@ -129,7 +129,7 @@ The `karpathy-2025` deck is ready — 16 slides covering all six of Karpathy's p
 
 ## Creating presentations
 
-You can find demo presentations under `demos/`. Your presentations must go under `presentations/` in the root of the folder.
+All decks live under `presentations/`. Template showcase decks are under `presentations/demos/`; your own decks can sit at the top level or in subfolders (e.g. `presentations/work/pitch/`) — the dashboard mirrors the on-disk hierarchy.
 
 ### With an AI agent (recommended)
 

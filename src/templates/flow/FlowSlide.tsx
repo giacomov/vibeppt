@@ -42,9 +42,7 @@ function copyPositions(nodes: Node[]) {
     (n) => `  { id: '${n.id}', position: { x: ${Math.round(n.position.x)}, y: ${Math.round(n.position.y)} } },`
   )
   const text = `// Paste these position overrides into your node definitions:\n[\n${lines.join('\n')}\n]`
-  navigator.clipboard.writeText(text).catch(() => {
-    console.log(text)
-  })
+  void navigator.clipboard.writeText(text).catch(() => { /* clipboard unavailable — drop silently */ })
 }
 
 export function FlowSlide({

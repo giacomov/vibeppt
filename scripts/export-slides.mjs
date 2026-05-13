@@ -8,12 +8,13 @@ import process from "node:process";
 import { spawn } from "node:child_process";
 import { chromium } from "playwright";
 import { PDFDocument } from "pdf-lib";
+import { EXPORT_DEFAULTS } from "./export-config.mjs";
 
-const DEFAULT_WIDTH = 1920;
-const DEFAULT_HEIGHT = 1080;
-const DEFAULT_SLIDE_TIME_MS = 60000;
-const DEFAULT_CLICK_INTERVAL_MS = 2000;
-const DEFAULT_BASE_URL = "http://127.0.0.1:4173";
+const DEFAULT_WIDTH = EXPORT_DEFAULTS.WIDTH;
+const DEFAULT_HEIGHT = EXPORT_DEFAULTS.HEIGHT;
+const DEFAULT_SLIDE_TIME_MS = EXPORT_DEFAULTS.SLIDE_TIME_MS;
+const DEFAULT_CLICK_INTERVAL_MS = EXPORT_DEFAULTS.CLICK_INTERVAL_MS;
+const DEFAULT_BASE_URL = EXPORT_DEFAULTS.BASE_URL;
 
 /**
  * @typedef {{ id: string; title: string }} SlideManifestItem
@@ -307,9 +308,16 @@ async function main() {
 
   const deckName = options.deck;
 
-  // Prevent path traversal: deck name must be a plain folder name with no separators.
-  if (/[/\\]/.test(deckName)) {
-    throw new Error(`--deck must be a simple folder name (no path separators), got: ${deckName}`);
+  // Prevent path traversal: deck name is a relative subpath under presentations/.
+  // Allow forward slashes (for nested folders) but reject anything that could
+  // escape the directory (..), backslashes, leading slashes, or empty segments.
+  const segments = deckName.split("/");
+  const invalid =
+    /\\/.test(deckName) ||
+    deckName.startsWith("/") ||
+    segments.some((seg) => seg === "" || seg === "." || seg === "..");
+  if (invalid) {
+    throw new Error(`--deck must be a relative subpath under presentations/ (no .., backslashes, or empty segments), got: ${deckName}`);
   }
 
   const cwd = process.cwd();
