@@ -211,7 +211,10 @@ async function startViteServer(cwd) {
     })
   })
 
-  // 2. Start preview server
+  // 2. Start preview server.
+  // Spawn in a new process group so we can kill the whole tree later — npm
+  // doesn't forward signals to its grandchildren on Linux, which leaves vite
+  // running and keeps stdio pipes open, blocking the parent from exiting.
   const child = spawn(
     'npm',
     ['run', 'preview', '--', '--host', '127.0.0.1', '--port', '4173', '--strictPort'],
@@ -219,6 +222,7 @@ async function startViteServer(cwd) {
       cwd,
       stdio: ['ignore', 'pipe', 'pipe'],
       env: process.env,
+      detached: process.platform !== 'win32',
     },
   )
   child.stdout.on('data', (chunk) => process.stdout.write(`[vite] ${chunk}`))
@@ -469,7 +473,13 @@ async function main() {
     }
 
     if (viteProcess && !viteProcess.killed) {
-      viteProcess.kill("SIGTERM");
+      // Kill the entire process group so vite (grandchild of npm) actually dies.
+      // On Windows there's no process group; fall back to killing just npm.
+      if (process.platform !== 'win32' && viteProcess.pid) {
+        try { process.kill(-viteProcess.pid, 'SIGTERM') } catch { viteProcess.kill('SIGTERM') }
+      } else {
+        viteProcess.kill('SIGTERM')
+      }
     }
   }
 }
