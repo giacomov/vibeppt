@@ -15,6 +15,8 @@ An AI-native slide deck builder: prompts in, slides out. Highly customizable.
 
 # Demo (YouTube)
 
+> Click on the logo to start the YouTube video
+
 [![Alt text](https://img.youtube.com/vi/73xrWOK75iQ/0.jpg)](https://www.youtube.com/watch?v=73xrWOK75iQ)
 
 # Quick start
