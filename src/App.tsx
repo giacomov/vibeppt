@@ -220,21 +220,21 @@ export default function App() {
           </button>
           <button
             onClick={() => setThemeMode(m => m === 'light' ? 'dark' : 'light')}
-            className={`absolute top-4 left-1/2 -translate-x-1/2 ${!focusMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} flex items-center gap-1.5 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300`}
-            aria-label="Toggle theme"
+            className={`absolute top-4 left-1/2 -translate-x-1/2 ${!focusMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} flex items-center text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300`}
+            aria-label={themeMode === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
+            title={themeMode === 'light' ? 'Dark' : 'Light'}
           >
             {themeMode === 'light' ? <Moon size={12} /> : <Sun size={12} />}
-            {themeMode === 'light' ? 'Dark' : 'Light'}
           </button>
           <div className={`absolute top-4 right-4 flex items-center gap-2 ${!focusMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-all duration-300`}>
             <button
               onClick={() => handleGoto(0)}
               disabled={currentIndex === 0}
-              className="flex items-center gap-1.5 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent disabled:opacity-40 transition-all duration-300"
+              className="flex items-center text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent disabled:opacity-40 transition-all duration-300"
               aria-label="Go to first slide"
+              title="Home"
             >
               <Home size={12} />
-              Home
             </button>
             {skipOpen ? (
               <>
@@ -290,36 +290,39 @@ export default function App() {
             ) : (
               <button
                 onClick={() => setSkipOpen(true)}
-                className="flex items-center gap-1.5 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300"
+                className="flex items-center text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300"
                 aria-label="Jump to slide"
+                title="Jump to"
               >
                 <SkipForward size={12} />
-                Jump to
               </button>
             )}
             <div className="w-px h-4 bg-muted/30" />
             <button
               onClick={() => setFocusMode(m => !m)}
-              className="flex items-center gap-1.5 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300"
+              className="flex items-center text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent transition-all duration-300"
+              aria-label={focusMode ? 'Show chat' : 'Present'}
+              title={focusMode ? 'Show Chat' : 'Present'}
             >
               {focusMode ? <MessageSquare size={12} /> : <Play size={12} />}
-              {focusMode ? 'Show Chat' : 'Present'}
             </button>
             <button
               onClick={() => setPresenterOpen(true)}
               disabled={presenterOpen}
-              className="flex items-center gap-1.5 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent disabled:opacity-40 transition-all duration-300"
+              className="flex items-center text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent disabled:opacity-40 transition-all duration-300"
+              aria-label="Open presenter view"
+              title="Presenter View"
             >
               <Monitor size={12} />
-              Presenter View
             </button>
             <button
               onClick={() => void handleExport()}
               disabled={exporting}
-              className="flex items-center gap-1.5 text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent disabled:opacity-40 transition-all duration-300"
+              className="flex items-center text-muted hover:text-text font-mono text-xs px-3 py-1.5 rounded-lg bg-surface border border-transparent hover:border-accent disabled:opacity-40 transition-all duration-300"
+              aria-label={exporting ? 'Exporting' : 'Export'}
+              title={exporting ? 'Exporting…' : 'Export'}
             >
-              <Download size={12} />
-              {exporting ? 'Exporting…' : 'Export'}
+              {exporting ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
             </button>
           </div>
         </div>

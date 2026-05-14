@@ -13,9 +13,20 @@ An AI-native slide deck builder: prompts in, slides out. Highly customizable.
 
 <img width="3262" height="1858" alt="image" src="https://github.com/user-attachments/assets/47d75256-6946-428b-9e70-90dce22eb44c" />
 
+# Demo (YouTube)
+
+[![Alt text](https://img.youtube.com/vi/73xrWOK75iQ/0.jpg)](https://www.youtube.com/watch?v=73xrWOK75iQ)
+
 # Quick start
 
-Make sure you have Claude Code installed and authenticated, then copy and paste this prompt into it:
+Make sure you are logged in into Claude Code. If not, just execute:
+
+```
+> claude /login
+```
+and follow the instructions.
+
+Then copy and paste this prompt into it:
 
 ```
 Verify that I have `npm` available, and if not install it for me.
@@ -34,6 +45,13 @@ The agent will ask you a few questions, then give you a outline, and if you conf
 After implementing it, it will export each slide as an image and check for alignment, overlap between elements, and any other defect (if any). If it finds issues, it will solve them for you.
 
 ### Or run the commands yourself
+
+Make sure you are logged in into Claude Code. If not, just execute:
+
+```
+> claude /login
+```
+and follow the instructions.
 
 ```shell
 git clone https://github.com/giacomov/vibeppt.git
