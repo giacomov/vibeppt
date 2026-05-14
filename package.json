@@ -14,7 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:integration": "vitest run --reporter verbose scripts/export.integration.test.mjs"
+    "test:integration": "vitest run --config vitest.integration.config.ts --reporter verbose"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.128",

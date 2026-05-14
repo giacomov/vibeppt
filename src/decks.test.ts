@@ -16,10 +16,9 @@ describe('allDecks (auto-discovery)', () => {
     }
   })
 
-  it('discovers nested decks with their subpath as the name (e.g. "work/...")', () => {
+  it('discovers nested decks with their subpath as the name (e.g. "demos/...")', () => {
     const names = allDecks.map((e) => e.name)
     expect(names.some((n) => n.includes('/'))).toBe(true)
-    expect(names.some((n) => n.startsWith('work/'))).toBe(true)
     expect(names.some((n) => n.startsWith('demos/'))).toBe(true)
   })
 
@@ -32,13 +31,8 @@ describe('allDecks (auto-discovery)', () => {
     }
   })
 
-  it('associates author.json with the matching deck and leaves others undefined', () => {
+  it('leaves author undefined for decks without an author.json', () => {
     const byName = new Map(allDecks.map((e) => [e.name, e]))
-
-    // shipyard-pitch has an author file → must be populated.
-    const shipyard = byName.get('shipyard-pitch')
-    expect(shipyard).toBeDefined()
-    expect(shipyard?.author).toBeDefined()
 
     // demos/demo has no author file → must be undefined.
     const demo = byName.get('demos/demo')

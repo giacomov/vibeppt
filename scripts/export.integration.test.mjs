@@ -16,7 +16,7 @@ describe('export integration — demo deck', () => {
     await rm(OUT_DIR, { recursive: true, force: true })
 
     const { stdout } = await runExportScript([
-      '--deck=demo',
+      '--deck=demos/demo',
       '--format=png',
       `--out=${OUT_DIR}`,
       '--slide-time=10000',
