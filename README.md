@@ -55,6 +55,8 @@ Make sure you are logged in into Claude Code. If not, just execute:
 ```
 and follow the instructions.
 
+Then install VibePPT:
+
 ```shell
 git clone https://github.com/giacomov/vibeppt.git
 cd vibeppt
@@ -100,7 +102,7 @@ The chat agent in the VibePPT UI runs with an active sandbox that limits what it
 > - The agent making bad changes _inside_ the allowed scope (e.g. corrupting a deck you care about — keep your work in version control).
 > - Anything that happens when you run the agent in **other tools** (Claude Code CLI, Cursor, etc.) outside the VibePPT UI — those have their own permission models.
 >
-> You are still responsible for reviewing what the agent does. **The authors of VibePPT assume no liability for any damage caused by the agent**, sandboxed or not. Treat it like any other automated tool: keep backups, use version control, and don't run it on machines you can't afford to recover.
+> You are still responsible for reviewing what the agent does. **In the unlikely event of damage to your system, the authors of VibePPT assume no liability for any damage caused by the agent**, sandboxed or not. 
 
 ---
 
