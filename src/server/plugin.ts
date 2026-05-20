@@ -66,7 +66,7 @@ function buildOptions(model: ModelAlias, effort: EffortLevel): QueryOptions {
     effort,
     cwd: CWD,
     permissionMode: 'default',
-    settingSources: ['project', 'local'],
+    settingSources: ['user', 'project', 'local'],
     executableArgs: ['--plugin-dir', resolve(CWD, '.agents')],
     mcpServers: { vibe: filePickerServer },
     // OS-level sandbox for bash. Two layers:
